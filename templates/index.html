@@ -1,49 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Brain MRI Tumor Classification</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            deep: '#0d0a14',
+            surface: '#120d1c',
+            elevated: '#1a1228',
+            card: '#2a1f3d',
+            accent: '#F0D6F2',
+            'accent-dim': 'rgba(240, 214, 242, 0.6)',
+            'accent-glow': 'rgba(240, 214, 242, 0.15)',
+            'text-primary': '#f0eaf2',
+            'text-muted': '#9b8aaa',
+            'text-dim': '#6b5a7a',
+            border: '#2e2040',
+            'border-hover': '#4a3660',
+            success: '#5a9a7a',
+            'success-dim': 'rgba(90, 154, 122, 0.25)',
+            error: '#9a5a6a',
+            'error-dim': 'rgba(154, 90, 106, 0.25)',
+          },
+          fontFamily: {
+            sans: ['DM Sans', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
   <style>
-    :root {
-      --bg-deep: #0d0a14;
-      --bg-surface: #120d1c;
-      --bg-elevated: #1a1228;
-      --bg-card: #2a1f3d;
-      --accent: #F0D6F2;
-      --accent-dim: rgba(240, 214, 242, 0.6);
-      --accent-glow: rgba(240, 214, 242, 0.15);
-      --text-primary: #f0eaf2;
-      --text-muted: #9b8aaa;
-      --text-dim: #6b5a7a;
-      --border: #2e2040;
-      --border-hover: #4a3660;
-      --success: #5a9a7a;
-      --success-dim: rgba(90, 154, 122, 0.25);
-      --error: #9a5a6a;
-      --error-dim: rgba(154, 90, 106, 0.25);
-      --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
-      --sans: 'DM Sans', system-ui, -apple-system, sans-serif;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      font-family: var(--sans);
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      min-height: 100vh;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-    }
-
     body::before {
       content: "";
       position: fixed;
@@ -52,1177 +47,241 @@
       pointer-events: none;
       z-index: 0;
     }
-
-    .app {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 2rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .logo-icon {
-      width: 28px;
-      height: 28px;
-      opacity: 0.9;
-    }
-
-    .logo-text {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      letter-spacing: -0.01em;
-    }
-
-    .back-link {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      text-decoration: none;
-      transition: color 150ms ease;
-    }
-
-    .back-link:hover {
-      color: var(--accent);
-    }
-
-    /* Tabs */
-    .tabs {
-      display: flex;
-      justify-content: center;
-      gap: 2.5rem;
-      padding: 1.25rem 2rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .tab {
-      position: relative;
-      background: none;
-      border: none;
-      font-family: var(--sans);
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 0.5rem 0;
-      transition: color 150ms ease;
-    }
-
-    .tab:hover {
-      color: var(--text-primary);
-    }
-
-    .tab.active {
-      color: var(--text-primary);
-    }
-
-    .tab.active::after {
-      content: "";
-      position: absolute;
-      bottom: -1.25rem;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: var(--accent);
-    }
-
-    /* Stats Strip */
-    .stats-strip {
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
-      padding: 1rem 2rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .stat {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-    }
-
-    .stat-value {
-      font-family: var(--mono);
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--accent);
-      transition: transform 150ms ease;
-    }
-
-    .stat-value.bump {
-      transform: scale(1.15);
-    }
-
-    .stat-label {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* Main Content */
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
-      gap: 1.5rem;
-    }
-
-    /* MRI Viewer */
-    .viewer-container {
-      position: relative;
-      width: 100%;
-      max-width: 560px;
-    }
-
-    .viewer {
-      position: relative;
-      aspect-ratio: 1;
-      background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-deep) 100%);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .viewer::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 100% 100% at 50% 100%, rgba(0,0,0,0.4), transparent 70%);
-      pointer-events: none;
-    }
-
-    .viewer-image {
-      max-width: 90%;
-      max-height: 90%;
-      object-fit: contain;
-      position: relative;
-      z-index: 1;
-    }
-
-    .viewer-heatmap {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 150ms ease;
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    .viewer-heatmap.visible {
-      opacity: 1;
-    }
-
-    .viewer-heatmap img {
-      max-width: 90%;
-      max-height: 90%;
-      object-fit: contain;
-    }
-
-    /* Upload Zone */
-    .upload-zone {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      cursor: pointer;
-      transition: border-color 150ms ease;
-      z-index: 3;
-    }
-
-    .upload-zone.hidden {
-      display: none;
-    }
-
-    .upload-zone:hover {
-      border-color: var(--accent);
-    }
-
-    .upload-zone.dragover {
-      border-color: var(--accent);
-      background: var(--accent-glow);
-    }
-
-    .upload-label {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      letter-spacing: 0.02em;
-    }
-
-    .upload-input {
-      display: none;
-    }
-
-    /* Heatmap Toggle */
-    .heatmap-toggle {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      z-index: 10;
-    }
-
-    .toggle-btn {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      padding: 0.4rem 0.75rem;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 150ms ease;
-    }
-
-    .toggle-btn:hover {
-      border-color: var(--accent-dim);
-      color: var(--text-primary);
-    }
-
-    .toggle-btn.active {
-      background: var(--accent-glow);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    /* Opacity Slider */
-    .opacity-control {
-      display: none;
-      align-items: center;
-      gap: 0.75rem;
-      margin-top: 0.75rem;
-    }
-
-    .opacity-control.visible {
-      display: flex;
-    }
-
-    .opacity-label {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      min-width: 50px;
-    }
-
-    .opacity-slider {
-      flex: 1;
-      height: 4px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: var(--border);
-      border-radius: 2px;
-      cursor: pointer;
-    }
-
-    .opacity-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 12px;
-      height: 12px;
-      background: var(--accent);
-      border-radius: 50%;
-      cursor: pointer;
-    }
-
-    /* Drawing Toolbar */
-    .drawing-toolbar {
-      position: absolute;
-      top: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      display: none;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      z-index: 10;
-    }
-
-    .drawing-toolbar.visible {
-      display: flex;
-    }
-
-    .tool-btn {
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-      border: 1px solid transparent;
-      border-radius: 6px;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 150ms ease;
-    }
-
-    .tool-btn:hover {
-      background: var(--bg-card);
-      color: var(--text-primary);
-    }
-
-    .tool-btn.active {
-      background: var(--accent-glow);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .tool-btn svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .color-swatch {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 2px solid var(--border);
-      cursor: pointer;
-      transition: border-color 150ms ease;
-    }
-
-    .color-swatch:hover,
-    .color-swatch.active {
-      border-color: var(--accent);
-    }
-
-    .color-swatch.white { background: #ffffff; }
-    .color-swatch.pink { background: var(--accent); }
-    .color-swatch.yellow { background: #e8d44d; }
-
-    .divider {
-      width: 1px;
-      height: 20px;
-      background: var(--border);
-      margin: 0 0.25rem;
-    }
-
-    /* Results */
-    .results-panel {
-      width: 100%;
-      max-width: 560px;
-      display: none;
-    }
-
-    .results-panel.visible {
-      display: block;
-    }
-
-    /* Probability Bars */
-    .prob-bars {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .prob-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .prob-label {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      width: 100px;
-      text-align: right;
-    }
-
-    .prob-track {
-      flex: 1;
-      height: 6px;
-      background: var(--bg-card);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .prob-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 3px;
-      transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .prob-value {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--text-primary);
-      width: 45px;
-    }
-
-    /* Answer Options (Study Mode) */
-    .answer-options {
-      display: none;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-      margin-top: 1.5rem;
-    }
-
-    .answer-options.visible {
-      display: grid;
-    }
-
-    .answer-btn {
-      padding: 1rem;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: var(--sans);
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-primary);
-      cursor: pointer;
-      transition: all 150ms ease;
-    }
-
-    .answer-btn:hover:not(:disabled) {
-      border-color: var(--accent);
-    }
-
-    .answer-btn:disabled {
-      cursor: default;
-    }
-
-    .answer-btn.correct {
-      border-color: var(--success);
-      background: var(--success-dim);
-    }
-
-    .answer-btn.incorrect {
-      border-color: var(--error);
-      background: var(--error-dim);
-    }
-
-    /* Educational Note */
-    .edu-note {
-      font-size: 0.8125rem;
-      font-style: italic;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-top: 1.5rem;
-      display: none;
-    }
-
-    .edu-note.visible {
-      display: block;
-    }
-
-    /* Analyze Button */
-    .analyze-btn {
-      padding: 0.875rem 2rem;
-      background: var(--accent-glow);
-      border: 1px solid var(--accent);
-      border-radius: 8px;
-      font-family: var(--sans);
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--accent);
-      cursor: pointer;
-      transition: all 150ms ease;
-    }
-
-    .analyze-btn:hover:not(:disabled) {
-      background: var(--accent);
-      color: var(--bg-deep);
-    }
-
-    .analyze-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    /* Loading State */
-    .loading-indicator {
-      display: none;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .loading-indicator.visible {
-      display: flex;
-    }
-
-    .loading-dots {
-      display: flex;
-      gap: 3px;
-    }
-
-    .loading-dots span {
-      width: 4px;
-      height: 4px;
-      background: var(--accent);
-      border-radius: 50%;
-      animation: bounce 1s ease-in-out infinite;
-    }
-
-    .loading-dots span:nth-child(2) { animation-delay: 0.1s; }
-    .loading-dots span:nth-child(3) { animation-delay: 0.2s; }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); opacity: 0.4; }
-      50% { transform: translateY(-4px); opacity: 1; }
-    }
-
-    /* Next Scan Button */
-    .next-btn {
-      padding: 0.75rem 1.5rem;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: var(--sans);
-      font-size: 0.8125rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 150ms ease;
-      display: none;
-    }
-
-    .next-btn.visible {
-      display: inline-flex;
-    }
-
-    .next-btn:hover {
-      border-color: var(--accent-dim);
-      color: var(--text-primary);
-    }
-
-    /* Disclaimer */
-    .disclaimer {
-      font-family: var(--mono);
-      font-size: 0.6875rem;
-      color: var(--text-dim);
-      text-align: center;
-      margin-top: auto;
-      padding: 1.5rem 2rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 640px) {
-      .header {
-        padding: 1rem;
-      }
-
-      .tabs {
-        gap: 1.5rem;
-        padding: 1rem;
-      }
-
-      .stats-strip {
-        gap: 1.5rem;
-        padding: 0.75rem 1rem;
-        flex-wrap: wrap;
-      }
-
-      .main {
-        padding: 1.5rem 1rem;
-      }
-
-      .answer-options {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 1ms !important;
-        transition-duration: 1ms !important;
-      }
-    }
   </style>
 </head>
-<body>
-  <div class="app">
-    <header class="header">
-      <div class="logo">
-        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+<body class="bg-deep text-text-primary font-sans min-h-screen antialiased">
+  <div class="relative z-10 min-h-screen flex flex-col">
+    
+    <!-- Header -->
+    <header class="flex items-center justify-between px-8 py-4 border-b border-border">
+      <div class="flex items-center gap-3">
+        <svg class="w-7 h-7 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M9.5 4c-2 0-3.5 1.5-3.5 3.5v2c0 .6-.3 1.2-.7 1.6-.7.7-1.2 1.7-1.2 2.8 0 2.2 1.8 4 4 4h2c.6 0 1 .4 1 1v.6c0 .5.4 1 1 1s1-.5 1-1v-.6c0-.6.4-1 1-1h2c2.2 0 4-1.8 4-4 0-1.1-.5-2.1-1.2-2.8-.4-.4-.7-1-.7-1.6v-2c0-2-1.5-3.5-3.5-3.5-1 0-2 .4-2.7 1.1-.7-.7-1.7-1.1-2.7-1.1z" stroke-linecap="round"/>
           <path d="M12 7v10M9 9c1-.8 2-.6 2.5.3M9 12c1.2-.9 2.5-.5 3 .7M9 15c1-.5 2 0 2.5.8" stroke-linecap="round" opacity="0.6"/>
         </svg>
-        <span class="logo-text">Brain MRI Classification</span>
+        <span class="text-sm font-semibold text-text-primary tracking-tight">Brain MRI Classification</span>
       </div>
-      <a href="/" class="back-link">← back to landing</a>
+      <a href="{{ url_for('landing') }}" class="font-mono text-xs text-text-muted hover:text-accent transition-colors">
+        &larr; back to landing
+      </a>
     </header>
 
-    <nav class="tabs">
-      <button class="tab active" data-mode="diagnostic">Diagnostic</button>
-      <button class="tab" data-mode="study">Study</button>
+    <!-- Mode Tabs -->
+    <nav class="flex justify-center gap-10 px-8 py-5 border-b border-border">
+      <a href="{{ url_for('index') }}?mode=diagnostic" 
+         class="relative text-sm font-medium pb-2 transition-colors {% if mode == 'diagnostic' %}text-text-primary{% else %}text-text-muted hover:text-text-primary{% endif %}">
+        Diagnostic
+        {% if mode == 'diagnostic' %}
+        <span class="absolute bottom-[-1.25rem] left-0 right-0 h-px bg-accent"></span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('index') }}?mode=study" 
+         class="relative text-sm font-medium pb-2 transition-colors {% if mode == 'study' %}text-text-primary{% else %}text-text-muted hover:text-text-primary{% endif %}">
+        Study
+        {% if mode == 'study' %}
+        <span class="absolute bottom-[-1.25rem] left-0 right-0 h-px bg-accent"></span>
+        {% endif %}
+      </a>
     </nav>
 
-    <div class="stats-strip" id="statsStrip" style="display: none;">
-      <div class="stat">
-        <span class="stat-value" id="streakValue">0</span>
-        <span class="stat-label">Streak</span>
+    {% if mode == 'study' %}
+    <!-- Stats Strip (Study Mode Only) -->
+    <div class="flex justify-center gap-12 px-8 py-4 border-b border-border">
+      <div class="flex items-baseline gap-2">
+        <span class="font-mono text-xl font-semibold text-accent">{{ session.get('streak', 0) }}</span>
+        <span class="font-mono text-[0.7rem] text-text-muted uppercase tracking-wider">Streak</span>
       </div>
-      <div class="stat">
-        <span class="stat-value" id="accuracyValue">0%</span>
-        <span class="stat-label">Accuracy</span>
+      <div class="flex items-baseline gap-2">
+        <span class="font-mono text-xl font-semibold text-accent">
+          {% if session.get('total', 0) > 0 %}
+            {{ ((session.get('correct', 0) / session.get('total', 1)) * 100) | round | int }}%
+          {% else %}
+            0%
+          {% endif %}
+        </span>
+        <span class="font-mono text-[0.7rem] text-text-muted uppercase tracking-wider">Accuracy</span>
       </div>
-      <div class="stat">
-        <span class="stat-value" id="totalValue">0</span>
-        <span class="stat-label">Total</span>
+      <div class="flex items-baseline gap-2">
+        <span class="font-mono text-xl font-semibold text-accent">{{ session.get('total', 0) }}</span>
+        <span class="font-mono text-[0.7rem] text-text-muted uppercase tracking-wider">Total</span>
       </div>
     </div>
+    {% endif %}
 
-    <main class="main">
-      <div class="viewer-container">
-        <div class="viewer" id="viewer">
-          <div class="upload-zone" id="uploadZone">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4">
-              <rect x="3" y="3" width="18" height="18" rx="3"/>
-              <path d="M3 15l5-5 4 4 5-5 4 4"/>
-            </svg>
-            <span class="upload-label">drop scan</span>
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center px-8 py-8 gap-6">
+
+      {% if mode == 'diagnostic' %}
+      <!-- DIAGNOSTIC MODE -->
+      
+      <!-- Upload Form -->
+      <div class="w-full max-w-[560px]">
+        <form action="{{ url_for('predict') }}" method="POST" enctype="multipart/form-data" class="flex flex-col items-center gap-6">
+          
+          <!-- MRI Viewer -->
+          <div class="relative w-full aspect-square bg-gradient-to-b from-surface to-deep border border-border rounded-lg overflow-hidden flex items-center justify-center">
+            
+            {% if prediction %}
+            <!-- Show uploaded image with results -->
+            <img src="data:image/png;base64,{{ uploaded_image }}" alt="MRI scan" class="max-w-[90%] max-h-[90%] object-contain relative z-10">
+            
+            {% if heatmap_image %}
+            <!-- Heatmap Toggle -->
+            <div class="absolute top-4 right-4 z-20">
+              <a href="{{ url_for('index') }}?mode=diagnostic&show_heatmap={{ 'false' if show_heatmap else 'true' }}" 
+                 class="font-mono text-[0.7rem] px-3 py-1.5 rounded-full border transition-all
+                        {% if show_heatmap %}bg-accent-glow border-accent text-accent{% else %}bg-elevated border-border text-text-muted hover:border-accent-dim hover:text-text-primary{% endif %}">
+                heatmap {% if show_heatmap %}on{% else %}off{% endif %}
+              </a>
+            </div>
+            
+            {% if show_heatmap %}
+            <!-- Heatmap Overlay -->
+            <div class="absolute inset-0 flex items-center justify-center z-10 opacity-70">
+              <img src="data:image/png;base64,{{ heatmap_image }}" alt="Grad-CAM heatmap" class="max-w-[90%] max-h-[90%] object-contain">
+            </div>
+            {% endif %}
+            {% endif %}
+            
+            {% else %}
+            <!-- Upload Zone -->
+            <label for="fileInput" class="absolute inset-0 flex flex-col items-center justify-center gap-3 cursor-pointer z-10 hover:border-accent transition-colors">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="opacity-40">
+                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                <path d="M3 15l5-5 4 4 5-5 4 4"/>
+              </svg>
+              <span class="font-mono text-xs text-text-muted tracking-wide">drop scan or click to upload</span>
+            </label>
+            <input type="file" name="image" id="fileInput" accept="image/png,image/jpeg,image/jpg" required class="hidden">
+            {% endif %}
+            
+            <!-- Vignette overlay -->
+            <div class="absolute inset-0 bg-gradient-radial from-transparent to-black/40 pointer-events-none"></div>
           </div>
-          <img class="viewer-image" id="viewerImage" alt="MRI scan" style="display: none;" />
-          <div class="viewer-heatmap" id="viewerHeatmap">
-            <img id="heatmapImage" alt="Grad-CAM heatmap overlay" />
-          </div>
-          <canvas id="drawingCanvas" style="position: absolute; inset: 0; z-index: 5; display: none;"></canvas>
-          <input type="file" class="upload-input" id="fileInput" accept="image/png,image/jpeg,image/jpg" />
-        </div>
 
-        <div class="heatmap-toggle" id="heatmapToggle" style="display: none;">
-          <button class="toggle-btn" id="toggleBtn">heatmap off</button>
-        </div>
-
-        <div class="drawing-toolbar" id="drawingToolbar">
-          <button class="tool-btn active" data-tool="brush" title="Brush">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 19l7-7 3 3-7 7-3-3z"/>
-              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
-            </svg>
+          {% if not prediction %}
+          <!-- Analyze Button -->
+          <button type="submit" 
+                  class="px-8 py-3.5 bg-accent-glow border border-accent rounded-lg font-semibold text-sm text-accent 
+                         hover:bg-accent hover:text-deep transition-all">
+            Analyze Scan
           </button>
-          <button class="tool-btn" data-tool="eraser" title="Eraser">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 20H9L4 15l10-10 7 7-6 6"/>
-              <path d="M6.5 17.5l4-4"/>
-            </svg>
-          </button>
-          <div class="divider"></div>
-          <div class="color-swatch white active" data-color="#ffffff" title="White"></div>
-          <div class="color-swatch pink" data-color="#F0D6F2" title="Pink"></div>
-          <div class="color-swatch yellow" data-color="#e8d44d" title="Yellow"></div>
-          <div class="divider"></div>
-          <button class="tool-btn" id="clearDrawing" title="Clear">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-              <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+          {% endif %}
+        </form>
 
-      <div class="opacity-control" id="opacityControl">
-        <span class="opacity-label">opacity</span>
-        <input type="range" class="opacity-slider" id="opacitySlider" min="0" max="100" value="70" />
-      </div>
-
-      <div class="loading-indicator" id="loadingIndicator">
-        <span id="loadingText">analyzing...</span>
-        <div class="loading-dots">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-
-      <button class="analyze-btn" id="analyzeBtn" disabled>Analyze Scan</button>
-
-      <div class="results-panel" id="resultsPanel">
-        <div class="prob-bars" id="probBars">
-          <div class="prob-row">
-            <span class="prob-label">Glioma</span>
-            <div class="prob-track"><div class="prob-fill" id="probGlioma" style="width: 0%"></div></div>
-            <span class="prob-value" id="pctGlioma">0%</span>
+        {% if prediction %}
+        <!-- Results Panel -->
+        <div class="mt-6">
+          <!-- Probability Bars -->
+          <div class="flex flex-col gap-3 mb-6">
+            {% for label, prob in probabilities.items() %}
+            <div class="flex items-center gap-4">
+              <span class="font-mono text-xs text-text-muted w-24 text-right capitalize">{{ label.replace('notumor', 'No Tumor') }}</span>
+              <div class="flex-1 h-1.5 bg-card rounded-full overflow-hidden">
+                <div class="h-full bg-accent rounded-full" style="width: {{ (prob * 100) | round | int }}%"></div>
+              </div>
+              <span class="font-mono text-xs text-text-primary w-11">{{ (prob * 100) | round | int }}%</span>
+            </div>
+            {% endfor %}
           </div>
-          <div class="prob-row">
-            <span class="prob-label">Meningioma</span>
-            <div class="prob-track"><div class="prob-fill" id="probMeningioma" style="width: 0%"></div></div>
-            <span class="prob-value" id="pctMeningioma">0%</span>
+
+          <!-- Predicted Class -->
+          <div class="text-center mb-6">
+            <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-1">Predicted Classification</p>
+            <p class="text-2xl font-semibold text-accent capitalize">{{ prediction.replace('notumor', 'No Tumor') }}</p>
           </div>
-          <div class="prob-row">
-            <span class="prob-label">Pituitary</span>
-            <div class="prob-track"><div class="prob-fill" id="probPituitary" style="width: 0%"></div></div>
-            <span class="prob-value" id="pctPituitary">0%</span>
-          </div>
-          <div class="prob-row">
-            <span class="prob-label">No Tumor</span>
-            <div class="prob-track"><div class="prob-fill" id="probNotumor" style="width: 0%"></div></div>
-            <span class="prob-value" id="pctNotumor">0%</span>
+
+          <!-- New Scan Button -->
+          <div class="flex justify-center">
+            <a href="{{ url_for('index') }}?mode=diagnostic" 
+               class="px-6 py-3 border border-border rounded-lg font-medium text-sm text-text-muted hover:border-accent-dim hover:text-text-primary transition-all">
+              Analyze New Scan
+            </a>
           </div>
         </div>
+        {% endif %}
       </div>
 
-      <div class="answer-options" id="answerOptions">
-        <button class="answer-btn" data-answer="glioma">Glioma</button>
-        <button class="answer-btn" data-answer="meningioma">Meningioma</button>
-        <button class="answer-btn" data-answer="pituitary">Pituitary</button>
-        <button class="answer-btn" data-answer="notumor">No Tumor</button>
+      {% else %}
+      <!-- STUDY MODE -->
+      
+      <div class="w-full max-w-[560px]">
+        <!-- MRI Viewer -->
+        <div class="relative w-full aspect-square bg-gradient-to-b from-surface to-deep border border-border rounded-lg overflow-hidden flex items-center justify-center mb-6">
+          {% if study_scan %}
+          <img src="data:image/png;base64,{{ study_scan.image }}" alt="MRI scan for study" class="max-w-[90%] max-h-[90%] object-contain relative z-10">
+          
+          {% if answered and study_scan.heatmap %}
+          <!-- Show heatmap after answering -->
+          <div class="absolute inset-0 flex items-center justify-center z-10 opacity-60">
+            <img src="data:image/png;base64,{{ study_scan.heatmap }}" alt="Grad-CAM heatmap" class="max-w-[90%] max-h-[90%] object-contain">
+          </div>
+          {% endif %}
+          {% else %}
+          <span class="font-mono text-xs text-text-muted">Loading scan...</span>
+          {% endif %}
+          
+          <!-- Vignette overlay -->
+          <div class="absolute inset-0 bg-gradient-radial from-transparent to-black/40 pointer-events-none"></div>
+        </div>
+
+        {% if study_scan %}
+        <!-- Answer Options -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          {% set options = ['glioma', 'meningioma', 'pituitary', 'notumor'] %}
+          {% for option in options %}
+          {% if answered %}
+          <div class="px-4 py-4 rounded-lg border text-sm font-medium text-center
+                      {% if option == study_scan.label %}border-success bg-success-dim text-text-primary
+                      {% elif option == user_answer and option != study_scan.label %}border-error bg-error-dim text-text-primary
+                      {% else %}border-border text-text-muted{% endif %}">
+            {{ option.replace('notumor', 'No Tumor').title() }}
+            {% if option == study_scan.label %}
+            <span class="ml-1 text-success">&check;</span>
+            {% elif option == user_answer and option != study_scan.label %}
+            <span class="ml-1 text-error">&times;</span>
+            {% endif %}
+          </div>
+          {% else %}
+          <a href="{{ url_for('study_answer', answer=option) }}" 
+             class="px-4 py-4 rounded-lg border border-border text-sm font-medium text-text-primary text-center hover:border-accent transition-all">
+            {{ option.replace('notumor', 'No Tumor').title() }}
+          </a>
+          {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if answered %}
+        <!-- Educational Note -->
+        <p class="text-sm italic text-text-muted leading-relaxed mb-6">
+          {% if study_scan.label == 'glioma' %}
+          Gliomas arise from glial cells and are typically found in the frontal or temporal lobes. They can range from slow-growing to highly aggressive forms.
+          {% elif study_scan.label == 'meningioma' %}
+          Meningiomas develop from the meninges, the protective layers around the brain. Most are benign and slow-growing, often discovered incidentally.
+          {% elif study_scan.label == 'pituitary' %}
+          Pituitary tumors form in the pituitary gland and can affect hormone production. Most are adenomas and respond well to treatment.
+          {% else %}
+          No abnormal tissue detected. The scan shows normal brain anatomy within expected parameters.
+          {% endif %}
+        </p>
+
+        <!-- Next Scan Button -->
+        <div class="flex justify-center">
+          <a href="{{ url_for('next_study_scan') }}" 
+             class="px-6 py-3 border border-border rounded-lg font-medium text-sm text-text-muted hover:border-accent-dim hover:text-text-primary transition-all">
+            Next Scan &rarr;
+          </a>
+        </div>
+        {% endif %}
+        {% endif %}
       </div>
+      {% endif %}
 
-      <p class="edu-note" id="eduNote"></p>
-
-      <button class="next-btn" id="nextBtn">Next Scan →</button>
-
-      <p class="disclaimer">For educational purposes only. Not a medical diagnosis tool.</p>
+      <!-- Disclaimer -->
+      <p class="font-mono text-[0.6875rem] text-text-dim text-center mt-auto pt-6">
+        For educational purposes only. Not a medical diagnosis tool.
+      </p>
     </main>
   </div>
-
-  <script>
-    (function() {
-      // Config
-      const LABELS = { glioma: 'Glioma', meningioma: 'Meningioma', pituitary: 'Pituitary', notumor: 'No Tumor' };
-      const EDU_NOTES = {
-        glioma: 'Gliomas arise from glial cells and are typically found in the frontal or temporal lobes. They can range from slow-growing to highly aggressive forms.',
-        meningioma: 'Meningiomas develop from the meninges, the protective layers around the brain. Most are benign and slow-growing, often discovered incidentally.',
-        pituitary: 'Pituitary tumors form in the pituitary gland and can affect hormone production. Most are adenomas and respond well to treatment.',
-        notumor: 'No abnormal tissue detected. The scan shows normal brain anatomy within expected parameters.'
-      };
-
-      // State
-      let currentMode = 'diagnostic';
-      let selectedFile = null;
-      let previewUrl = null;
-      let heatmapVisible = false;
-      let studyStats = { streak: 0, correct: 0, total: 0 };
-      let currentStudyScan = null;
-      let answered = false;
-
-      // Drawing state
-      let drawingEnabled = false;
-      let currentTool = 'brush';
-      let currentColor = '#ffffff';
-      let isDrawing = false;
-      let lastX = 0, lastY = 0;
-
-      // Elements
-      const tabs = document.querySelectorAll('.tab');
-      const statsStrip = document.getElementById('statsStrip');
-      const streakValue = document.getElementById('streakValue');
-      const accuracyValue = document.getElementById('accuracyValue');
-      const totalValue = document.getElementById('totalValue');
-      const uploadZone = document.getElementById('uploadZone');
-      const fileInput = document.getElementById('fileInput');
-      const viewer = document.getElementById('viewer');
-      const viewerImage = document.getElementById('viewerImage');
-      const viewerHeatmap = document.getElementById('viewerHeatmap');
-      const heatmapImage = document.getElementById('heatmapImage');
-      const heatmapToggle = document.getElementById('heatmapToggle');
-      const toggleBtn = document.getElementById('toggleBtn');
-      const opacityControl = document.getElementById('opacityControl');
-      const opacitySlider = document.getElementById('opacitySlider');
-      const drawingToolbar = document.getElementById('drawingToolbar');
-      const drawingCanvas = document.getElementById('drawingCanvas');
-      const analyzeBtn = document.getElementById('analyzeBtn');
-      const loadingIndicator = document.getElementById('loadingIndicator');
-      const loadingText = document.getElementById('loadingText');
-      const resultsPanel = document.getElementById('resultsPanel');
-      const answerOptions = document.getElementById('answerOptions');
-      const answerBtns = document.querySelectorAll('.answer-btn');
-      const eduNote = document.getElementById('eduNote');
-      const nextBtn = document.getElementById('nextBtn');
-      const toolBtns = document.querySelectorAll('.tool-btn[data-tool]');
-      const colorSwatches = document.querySelectorAll('.color-swatch');
-      const clearDrawingBtn = document.getElementById('clearDrawing');
-
-      // Drawing context
-      let ctx = null;
-
-      function initCanvas() {
-        const rect = viewer.getBoundingClientRect();
-        drawingCanvas.width = rect.width;
-        drawingCanvas.height = rect.height;
-        ctx = drawingCanvas.getContext('2d');
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.lineWidth = 3;
-      }
-
-      function setMode(mode) {
-        currentMode = mode;
-        tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
-        
-        // Reset state
-        resetViewer();
-        heatmapVisible = false;
-        toggleBtn.textContent = 'heatmap off';
-        toggleBtn.classList.remove('active');
-        viewerHeatmap.classList.remove('visible');
-        heatmapToggle.style.display = 'none';
-        opacityControl.classList.remove('visible');
-        resultsPanel.classList.remove('visible');
-        answerOptions.classList.remove('visible');
-        eduNote.classList.remove('visible');
-        nextBtn.classList.remove('visible');
-        answered = false;
-        answerBtns.forEach(b => {
-          b.classList.remove('correct', 'incorrect');
-          b.disabled = false;
-        });
-
-        if (mode === 'diagnostic') {
-          statsStrip.style.display = 'none';
-          analyzeBtn.style.display = '';
-          drawingToolbar.classList.remove('visible');
-          drawingCanvas.style.display = 'none';
-          uploadZone.classList.remove('hidden');
-        } else {
-          statsStrip.style.display = '';
-          analyzeBtn.style.display = 'none';
-          drawingToolbar.classList.add('visible');
-          drawingCanvas.style.display = 'block';
-          initCanvas();
-          loadRandomStudyScan();
-        }
-      }
-
-      function resetViewer() {
-        selectedFile = null;
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        previewUrl = null;
-        viewerImage.style.display = 'none';
-        viewerImage.src = '';
-        heatmapImage.src = '';
-        uploadZone.classList.remove('hidden');
-        analyzeBtn.disabled = true;
-        clearCanvas();
-      }
-
-      function clearCanvas() {
-        if (ctx) {
-          ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-        }
-      }
-
-      function updateStats() {
-        streakValue.textContent = studyStats.streak;
-        accuracyValue.textContent = studyStats.total > 0 
-          ? Math.round((studyStats.correct / studyStats.total) * 100) + '%' 
-          : '0%';
-        totalValue.textContent = studyStats.total;
-
-        // Animate bump
-        [streakValue, accuracyValue, totalValue].forEach(el => {
-          el.classList.add('bump');
-          setTimeout(() => el.classList.remove('bump'), 150);
-        });
-      }
-
-      async function loadRandomStudyScan() {
-        uploadZone.classList.add('hidden');
-        loadingIndicator.classList.add('visible');
-        loadingText.textContent = 'loading scan...';
-
-        try {
-          const res = await fetch('/random-scan');
-          const data = await res.json();
-          
-          currentStudyScan = data;
-          viewerImage.src = 'data:image/png;base64,' + data.image;
-          viewerImage.style.display = '';
-          loadingIndicator.classList.remove('visible');
-          answerOptions.classList.add('visible');
-          answered = false;
-          answerBtns.forEach(b => {
-            b.classList.remove('correct', 'incorrect');
-            b.disabled = false;
-          });
-          clearCanvas();
-        } catch (e) {
-          loadingIndicator.classList.remove('visible');
-          console.error('Failed to load random scan:', e);
-        }
-      }
-
-      function handleAnswer(answer) {
-        if (answered) return;
-        answered = true;
-        
-        const correct = currentStudyScan.label;
-        studyStats.total++;
-        
-        answerBtns.forEach(btn => {
-          btn.disabled = true;
-          if (btn.dataset.answer === correct) {
-            btn.classList.add('correct');
-          } else if (btn.dataset.answer === answer && answer !== correct) {
-            btn.classList.add('incorrect');
-          }
-        });
-
-        if (answer === correct) {
-          studyStats.streak++;
-          studyStats.correct++;
-        } else {
-          studyStats.streak = 0;
-        }
-
-        updateStats();
-
-        // Show heatmap overlay for comparison
-        if (currentStudyScan.heatmap) {
-          heatmapImage.src = 'data:image/png;base64,' + currentStudyScan.heatmap;
-          viewerHeatmap.style.opacity = opacitySlider.value / 100;
-          setTimeout(() => viewerHeatmap.classList.add('visible'), 300);
-        }
-
-        // Show educational note
-        eduNote.textContent = EDU_NOTES[correct] || '';
-        eduNote.classList.add('visible');
-
-        nextBtn.classList.add('visible');
-      }
-
-      // Event listeners
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => setMode(tab.dataset.mode));
-      });
-
-      uploadZone.addEventListener('click', () => fileInput.click());
-      
-      uploadZone.addEventListener('dragover', e => {
-        e.preventDefault();
-        uploadZone.classList.add('dragover');
-      });
-
-      uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('dragover');
-      });
-
-      uploadZone.addEventListener('drop', e => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-        const file = e.dataTransfer.files[0];
-        if (file) handleFileSelect(file);
-      });
-
-      fileInput.addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (file) handleFileSelect(file);
-      });
-
-      function handleFileSelect(file) {
-        if (!file.type.match(/^image\/(png|jpeg|jpg)$/i)) return;
-        
-        selectedFile = file;
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        previewUrl = URL.createObjectURL(file);
-        
-        viewerImage.src = previewUrl;
-        viewerImage.style.display = '';
-        uploadZone.classList.add('hidden');
-        analyzeBtn.disabled = false;
-        
-        // Reset results
-        resultsPanel.classList.remove('visible');
-        heatmapToggle.style.display = 'none';
-        viewerHeatmap.classList.remove('visible');
-      }
-
-      analyzeBtn.addEventListener('click', async () => {
-        if (!selectedFile) return;
-        
-        analyzeBtn.disabled = true;
-        loadingIndicator.classList.add('visible');
-        loadingText.textContent = 'analyzing...';
-
-        const fd = new FormData();
-        fd.append('image', selectedFile);
-
-        try {
-          const res = await fetch('/predict', { method: 'POST', body: fd });
-          const data = await res.json();
-          
-          loadingIndicator.classList.remove('visible');
-          analyzeBtn.disabled = false;
-
-          if (!res.ok) {
-            console.error(data.error);
-            return;
-          }
-
-          // Update probability bars
-          const probs = data.probabilities || {};
-          ['glioma', 'meningioma', 'pituitary', 'notumor'].forEach(cls => {
-            const pct = Math.round((probs[cls] || 0) * 100);
-            document.getElementById('prob' + cls.charAt(0).toUpperCase() + cls.slice(1)).style.width = pct + '%';
-            document.getElementById('pct' + cls.charAt(0).toUpperCase() + cls.slice(1)).textContent = pct + '%';
-          });
-
-          resultsPanel.classList.add('visible');
-
-          // Setup heatmap
-          if (data.heatmap_image) {
-            heatmapImage.src = 'data:image/png;base64,' + data.heatmap_image;
-            heatmapToggle.style.display = '';
-          }
-        } catch (e) {
-          loadingIndicator.classList.remove('visible');
-          analyzeBtn.disabled = false;
-          console.error('Prediction failed:', e);
-        }
-      });
-
-      toggleBtn.addEventListener('click', () => {
-        heatmapVisible = !heatmapVisible;
-        toggleBtn.textContent = heatmapVisible ? 'heatmap on' : 'heatmap off';
-        toggleBtn.classList.toggle('active', heatmapVisible);
-        viewerHeatmap.classList.toggle('visible', heatmapVisible);
-        viewerHeatmap.style.opacity = opacitySlider.value / 100;
-        opacityControl.classList.toggle('visible', heatmapVisible);
-      });
-
-      opacitySlider.addEventListener('input', () => {
-        viewerHeatmap.style.opacity = opacitySlider.value / 100;
-      });
-
-      answerBtns.forEach(btn => {
-        btn.addEventListener('click', () => handleAnswer(btn.dataset.answer));
-      });
-
-      nextBtn.addEventListener('click', () => {
-        viewerHeatmap.classList.remove('visible');
-        eduNote.classList.remove('visible');
-        nextBtn.classList.remove('visible');
-        loadRandomStudyScan();
-      });
-
-      // Drawing tools
-      toolBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          toolBtns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentTool = btn.dataset.tool;
-        });
-      });
-
-      colorSwatches.forEach(swatch => {
-        swatch.addEventListener('click', () => {
-          colorSwatches.forEach(s => s.classList.remove('active'));
-          swatch.classList.add('active');
-          currentColor = swatch.dataset.color;
-        });
-      });
-
-      clearDrawingBtn.addEventListener('click', clearCanvas);
-
-      // Drawing on canvas
-      drawingCanvas.addEventListener('mousedown', e => {
-        if (currentMode !== 'study') return;
-        isDrawing = true;
-        const rect = drawingCanvas.getBoundingClientRect();
-        lastX = e.clientX - rect.left;
-        lastY = e.clientY - rect.top;
-      });
-
-      drawingCanvas.addEventListener('mousemove', e => {
-        if (!isDrawing || currentMode !== 'study') return;
-        const rect = drawingCanvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(x, y);
-        
-        if (currentTool === 'eraser') {
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.lineWidth = 20;
-        } else {
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.strokeStyle = currentColor;
-          ctx.lineWidth = 3;
-        }
-        
-        ctx.stroke();
-        lastX = x;
-        lastY = y;
-      });
-
-      drawingCanvas.addEventListener('mouseup', () => isDrawing = false);
-      drawingCanvas.addEventListener('mouseleave', () => isDrawing = false);
-
-      // Touch support
-      drawingCanvas.addEventListener('touchstart', e => {
-        if (currentMode !== 'study') return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        const rect = drawingCanvas.getBoundingClientRect();
-        isDrawing = true;
-        lastX = touch.clientX - rect.left;
-        lastY = touch.clientY - rect.top;
-      });
-
-      drawingCanvas.addEventListener('touchmove', e => {
-        if (!isDrawing || currentMode !== 'study') return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        const rect = drawingCanvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(x, y);
-        
-        if (currentTool === 'eraser') {
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.lineWidth = 20;
-        } else {
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.strokeStyle = currentColor;
-          ctx.lineWidth = 3;
-        }
-        
-        ctx.stroke();
-        lastX = x;
-        lastY = y;
-      });
-
-      drawingCanvas.addEventListener('touchend', () => isDrawing = false);
-
-      // Window resize handler for canvas
-      window.addEventListener('resize', () => {
-        if (currentMode === 'study') {
-          initCanvas();
-        }
-      });
-
-      // Initialize
-      setMode('diagnostic');
-    })();
-  </script>
 </body>
 </html>

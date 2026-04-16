@@ -77,3 +77,10 @@ Not a clinical diagnostic tool.
 - Multi-modal imaging (MRI + CT)  
 - Clinical validation  
 - Uncertainty estimation
+
+## Model Download
+
+The trained model file is too large for GitHub.
+
+Download it here:  
+[model](https://drive.google.com/file/d/17x95P7RX-JFBLRvDEHozWuRzUrJ7OLcy/view?usp=sharing)

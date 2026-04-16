@@ -1,3 +1,5 @@
 .DS_Store
 __pycache__/
 *.pycbrain_tumor_model.h5
+*.pyc
+__pycache__/

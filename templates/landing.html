@@ -29,47 +29,66 @@
     html { scroll-behavior: smooth; }
     body { background: #0a0a0f; overflow-x: hidden; }
     .orb { position: fixed; border-radius: 9999px; pointer-events: none; z-index: 0; }
-    .orb-left { width: 600px; height: 600px; top: -200px; left: -180px; background: rgba(232, 121, 249, 0.12); filter: blur(120px); }
-    .orb-right { width: 500px; height: 500px; right: -150px; bottom: -180px; background: rgba(167, 139, 250, 0.10); filter: blur(100px); }
-    #particles-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+    .orb-left  { width: 600px; height: 600px; top: -200px; left: -180px; background: rgba(232,121,249,0.12); filter: blur(120px); }
+    .orb-right { width: 500px; height: 500px; right: -150px; bottom: -180px; background: rgba(167,139,250,0.10); filter: blur(100px); }
+
+    /* ── Neural-network canvas ── */
+    #neuro-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
     .content-layer { position: relative; z-index: 10; }
+
     .step-card { position: relative; overflow: hidden; }
     .step-card::after { content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 2px; background: #a78bfa; transition: right 250ms ease; }
     .step-card:hover::after { right: 0; }
-    .detect-gradient { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent; }
-    .cta-gradient { background: linear-gradient(135deg, #a78bfa, #e879f9); }
+
+    .detect-gradient { background: linear-gradient(135deg,#a78bfa,#e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent; }
+    .cta-gradient    { background: linear-gradient(135deg,#a78bfa,#e879f9); }
+
+    /* stats divider lines */
+    .stat-divider { border-left: 1px solid #1a1a2e; }
   </style>
 </head>
 <body class="font-sans text-white">
+
   <div class="orb orb-left"></div>
   <div class="orb orb-right"></div>
-  <canvas id="particles-canvas"></canvas>
- 
+  <canvas id="neuro-canvas"></canvas>
+
   <div class="content-layer">
+
+    <!-- NAV -->
     <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-[rgba(10,10,15,0.8)] backdrop-blur-xl">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="text-lg">🧠</span>
-          <span class="text-white font-semibold">Self Built CNN Tumor Detection</span>
+          <span class="text-white font-semibold text-sm sm:text-base">Self Built CNN Tumor Detection</span>
         </div>
       </div>
     </nav>
- 
-    <!-- HERO: removed min-h-screen, uses pb-16 to close gap -->
+
+    <!-- HERO -->
     <section class="pt-[100px] pb-16">
       <div class="max-w-7xl mx-auto px-6 w-full">
         <div class="grid lg:grid-cols-2 gap-10 items-center">
+
           <div class="pt-[80px]">
             <div class="inline-flex items-center border border-[rgba(232,121,249,0.4)] rounded-full px-4 py-1 text-[13px] text-[#f0abfc]">
               🔬 Deep Learning Medical Imaging Project
             </div>
-            <h1 class="mt-6 text-white font-extrabold leading-[1.1] text-[40px] sm:text-[48px] lg:text-[56px]">
-              Brain Tumor <span class="detect-gradient">Detection</span> Using Deep Learning
+
+            <h1 class="mt-6 text-white font-extrabold leading-[1.1] text-[38px] sm:text-[44px] lg:text-[52px]">
+            <br> AI-Powered <span class="detect-gradient">Brain MRI Analysis</span> & Educational <span class="detect-gradient">Training System</span>
             </h1>
+
+            <!-- ── Updated description with model stats woven in ── -->
             <p class="mt-4 text-[#8892a4] text-base leading-relaxed max-w-[480px]">
-              A convolutional neural network trained on 5,700+ MRI scans to classify brain tumors
-              across 4 categories with 98% test accuracy using VGG16 transfer learning.
+              A VGG16 transfer-learning model trained for 15 epochs on the
+              <a href="https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset" target="_blank" rel="noopener" class="text-[#a78bfa] hover:underline">Kaggle Brain Tumor MRI dataset</a>
+              (5,712 scans, 16.8 M weighted parameters). Classifies 4 categories with
+              <strong class="text-white">98% test accuracy</strong>. Upload a scan for instant AI diagnosis,
+              or switch to Training Mode</strong> to sharpen your own reading skills.
             </p>
+
             <div class="mt-8 flex flex-wrap gap-4">
               <a href="/scan" class="cta-gradient text-white px-7 py-3 rounded-lg font-semibold transition-all duration-200 hover:shadow-[0_0_24px_rgba(167,139,250,0.45)]">
                 Try the Model →
@@ -79,175 +98,374 @@
               </a>
             </div>
           </div>
- 
-          <div id="brain-section" class="relative w-full flex items-center justify-center pt-[80px]">
+
+          <!-- 3-D brain (kept as-is) -->
+          <div class="relative w-full flex items-center justify-center pt-[80px]">
             <iframe
               src="https://tangerine-praline-cd4af6.netlify.app/"
-              width="600"
-              height="400"
-              style="border:none;"
-              allowfullscreen>
+              width="600" height="400"
+              style="border:none;" allowfullscreen>
             </iframe>
           </div>
         </div>
       </div>
     </section>
- 
-    <!-- STATS: flows directly after hero, no extra margin -->
-    <section id="stats-section" class="py-10 px-20">
-      <div class="grid grid-cols-4">
-        <div class="text-center">
-          <div class="text-white text-[48px] font-extrabold leading-none" data-count-target="98" data-count-suffix="%">0%</div>
-          <div class="mt-2 text-[#8892a4] text-[14px]">Test Accuracy</div>
-        </div>
-        <div class="text-center border-l border-[#1a1a2e]">
-          <div class="text-white text-[48px] font-extrabold leading-none" data-count-target="5712">0</div>
-          <div class="mt-2 text-[#8892a4] text-[14px]">Training Images</div>
-        </div>
-        <div class="text-center border-l border-[#1a1a2e]">
-          <div class="text-white text-[48px] font-extrabold leading-none" data-count-target="4">0</div>
-          <div class="mt-2 text-[#8892a4] text-[14px]">Classification Classes</div>
-        </div>
-        <div class="text-center border-l border-[#1a1a2e]">
-          <div class="text-white text-[48px] font-extrabold leading-none" data-count-target="16.8" data-count-suffix="M">0M</div>
-          <div class="mt-2 text-[#8892a4] text-[14px]">Model Parameters</div>
+
+    <!-- STATS -->
+    <section id="stats-section" class="py-10 border-y border-[#1a1a2e]">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-0">
+          <div class="text-center py-4">
+            <div class="text-white text-[44px] font-extrabold leading-none" data-count-target="98" data-count-suffix="%">0%</div>
+            <div class="mt-2 text-[#8892a4] text-[13px] font-medium tracking-wide uppercase">Test Accuracy</div>
+          </div>
+          <div class="text-center py-4 stat-divider">
+            <div class="text-white text-[44px] font-extrabold leading-none" data-count-target="5712">0</div>
+            <div class="mt-2 text-[#8892a4] text-[13px] font-medium tracking-wide uppercase">Training Images</div>
+          </div>
+          <div class="text-center py-4 stat-divider">
+            <div class="text-white text-[44px] font-extrabold leading-none" data-count-target="4">0</div>
+            <div class="mt-2 text-[#8892a4] text-[13px] font-medium tracking-wide uppercase">Classification Classes</div>
+          </div>
+          <div class="text-center py-4 stat-divider">
+            <div class="text-white text-[44px] font-extrabold leading-none" data-count-target="16.8" data-count-suffix="M">0M</div>
+            <div class="mt-2 text-[#8892a4] text-[13px] font-medium tracking-wide uppercase">Model Parameters</div>
+          </div>
         </div>
       </div>
     </section>
- 
-    <!-- TUMOR CARDS: your exact descriptions -->
+
+    <!-- TUMOR CARDS -->
     <section class="py-20">
       <div class="max-w-7xl mx-auto px-6">
-        <h3 class="text-center text-[11px] tracking-[3px] text-[#a78bfa] font-semibold mb-2">EXPLORE TUMOR TYPES</h3>
-        <p class="text-center text-[14px] text-[#8892a4] mb-6">Click each type to learn more</p>
- 
-        <div class="grid grid-cols-4 gap-4">
-          <a href="https://www.cancer.gov/types/brain/patient/adult-brain-treatment-pdq" target="_blank" rel="noopener noreferrer" class="bg-[#0f0f1a] border border-[#1a1a2e] rounded-xl p-4 cursor-pointer hover:-translate-y-1 transition-all duration-300">
-            <div class="flex items-center justify-between gap-3">
-              <h4 class="text-white font-bold text-[16px]">Glioma</h4>
-              <span class="bg-[#3a0a0a] text-[#ef4444] border border-[#ef4444] rounded-[20px] px-[10px] py-[3px] text-[11px]">SEVERITY: HIGH</span>
+        <p class="text-center text-[11px] tracking-[3px] text-[#a78bfa] font-semibold mb-2 uppercase">Explore Tumor Types</p>
+        <p class="text-center text-[14px] text-[#8892a4] mb-8">Click each type to learn more</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+          <!-- Glioma — HIGH (red) -->
+          <a href="https://www.cancer.gov/types/brain/patient/adult-brain-treatment-pdq"
+             target="_blank" rel="noopener noreferrer"
+             class="bg-[#0f0f1a] border border-[#1a1a2e] rounded-xl p-5 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <h4 class="text-white font-bold text-[16px] leading-tight">Glioma</h4>
+              <span class="shrink-0 bg-[#3a0a0a] text-[#ef4444] border border-[#ef4444]/60 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">High</span>
             </div>
-            <p class="text-[#8892a4] text-[13px] leading-[1.6] mt-2">A fast-growing brain tumor that arises from glial (support) cells in the brain. Most commonly found in the frontal or temporal lobes.</p>
-            <span class="text-[#a78bfa] text-[12px] mt-3 block">Learn more →</span>
+            <p class="text-[#8892a4] text-[13px] leading-[1.6] flex-1">
+              Arises from glial support cells. Fast-growing, most often in the frontal or temporal lobes.
+            </p>
+            <span class="text-[#a78bfa] text-[12px] mt-4 block">Learn more →</span>
           </a>
- 
-          <a href="https://www.mayoclinic.org/diseases-conditions/meningioma/symptoms-causes/syc-20355643#:~:text=A%20meningioma%20is%20a%20tumor,forms%20near%20the%20spinal%20cord." target="_blank" rel="noopener noreferrer" class="bg-[#0f0f1a] border border-[#1a1a2e] rounded-xl p-4 cursor-pointer hover:-translate-y-1 transition-all duration-300">
-            <div class="flex items-center justify-between gap-3">
-              <h4 class="text-white font-bold text-[16px]">Meningioma</h4>
-              <span class="bg-[#3a2000] text-[#f59e0b] border border-[#f59e0b] rounded-[20px] px-[10px] py-[3px] text-[11px]">SEVERITY: MEDIUM</span>
+
+          <!-- Meningioma — MEDIUM (amber) -->
+          <a href="https://www.mayoclinic.org/diseases-conditions/meningioma/symptoms-causes/syc-20355643"
+             target="_blank" rel="noopener noreferrer"
+             class="bg-[#0f0f1a] border border-[#1a1a2e] rounded-xl p-5 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <h4 class="text-white font-bold text-[16px] leading-tight">Meningioma</h4>
+              <span class="shrink-0 bg-[#3a2000] text-[#f59e0b] border border-[#f59e0b]/60 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">Medium</span>
             </div>
-            <p class="text-[#8892a4] text-[13px] leading-[1.6] mt-2">A tumor that develops from the meninges, the protective membranes around the brain and spinal cord. Usually slow-growing and often benign.</p>
-            <span class="text-[#a78bfa] text-[12px] mt-3 block">Learn more →</span>
+            <p class="text-[#8892a4] text-[13px] leading-[1.6] flex-1">
+              Grows from the meninges — membranes surrounding the brain and spinal cord. Usually slow-growing and often benign.
+            </p>
+            <span class="text-[#a78bfa] text-[12px] mt-4 block">Learn more →</span>
           </a>
- 
-          <a href="https://www.mayoclinic.org/diseases-conditions/pituitary-tumors/symptoms-causes/syc-20350548" target="_blank" rel="noopener noreferrer" class="bg-[#0f0f1a] border border-[#1a1a2e] rounded-xl p-4 cursor-pointer hover:-translate-y-1 transition-all duration-300">
-            <div class="flex items-center justify-between gap-3">
-              <h4 class="text-white font-bold text-[16px]">Pituitary Tumor</h4>
-              <span class="bg-[#3a2000] text-[#f59e0b] border border-[#f59e0b] rounded-[20px] px-[10px] py-[3px] text-[11px]">SEVERITY: MEDIUM</span>
+
+          <!-- Pituitary — MEDIUM (amber) -->
+          <a href="https://www.mayoclinic.org/diseases-conditions/pituitary-tumors/symptoms-causes/syc-20350548"
+             target="_blank" rel="noopener noreferrer"
+             class="bg-[#0f0f1a] border border-[#1a1a2e] rounded-xl p-5 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <h4 class="text-white font-bold text-[16px] leading-tight">Pituitary Tumor</h4>
+              <span class="shrink-0 bg-[#3a2000] text-[#f59e0b] border border-[#f59e0b]/60 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">Medium</span>
             </div>
-            <p class="text-[#8892a4] text-[13px] leading-[1.6] mt-2">A growth (adenoma) in the pituitary gland, which regulates key hormones in the body. Typically non-cancerous and treatable.</p>
-            <span class="text-[#a78bfa] text-[12px] mt-3 block">Learn more →</span>
+            <p class="text-[#8892a4] text-[13px] leading-[1.6] flex-1">
+              An adenoma in the pituitary gland that can disrupt hormone regulation. Typically non-cancerous and very treatable.
+            </p>
+            <span class="text-[#a78bfa] text-[12px] mt-4 block">Learn more →</span>
           </a>
- 
-          <a href="https://www.cancer.gov/types/brain" target="_blank" rel="noopener noreferrer" class="bg-[#0f0f1a] border border-[#1a1a2e] rounded-xl p-4 cursor-pointer hover:-translate-y-1 transition-all duration-300">
-            <div class="flex items-center justify-between gap-3">
-              <h4 class="text-white font-bold text-[16px]">No Tumor</h4>
-              <span class="bg-[#0a3a1a] text-[#10b981] border border-[#10b981] rounded-[20px] px-[10px] py-[3px] text-[11px]">SEVERITY: NONE</span>
+
+          <!-- No Tumor — NONE (green) -->
+          <a href="https://www.cancer.gov/types/brain"
+             target="_blank" rel="noopener noreferrer"
+             class="bg-[#0f0f1a] border border-[#1a1a2e] rounded-xl p-5 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <h4 class="text-white font-bold text-[16px] leading-tight">No Tumor</h4>
+              <span class="shrink-0 bg-[#0a3a1a] text-[#10b981] border border-[#10b981]/60 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">None</span>
             </div>
-            <p class="text-[#8892a4] text-[13px] leading-[1.6] mt-2">No abnormal or malignant tissue detected in the MRI scan. Findings appear within normal limits.</p>
-            <span class="text-[#a78bfa] text-[12px] mt-3 block">Learn more →</span>
+            <p class="text-[#8892a4] text-[13px] leading-[1.6] flex-1">
+              No abnormal tissue detected. Scan findings are within normal limits — a healthy result.
+            </p>
+            <span class="text-[#a78bfa] text-[12px] mt-4 block">Learn more →</span>
           </a>
+
         </div>
       </div>
     </section>
- 
+
+    <!-- HOW IT WORKS -->
     <section class="py-20">
       <div class="max-w-7xl mx-auto px-6">
-        <h2 class="text-center text-white font-extrabold text-[40px]">How It Works</h2>
-        <p class="text-center text-[#8892a4] mt-2">Three steps from scan to diagnosis</p>
+        <h2 class="text-center text-white font-extrabold text-[36px] tracking-tight">How It Works</h2>
+        <p class="text-center text-[#8892a4] mt-2 text-sm">Two tools, one goal — understand brain MRI scans</p>
+
         <div class="mt-12 grid md:grid-cols-3 gap-6">
+
           <article class="step-card bg-card border border-[#1a1a2e] rounded-2xl p-8">
             <div class="text-[48px] font-black text-[rgba(232,121,249,0.3)] leading-none">01</div>
             <div class="mt-4 text-2xl">🏥</div>
-            <h3 class="mt-4 text-white font-bold text-[20px]">Upload MRI Scan</h3>
-            <p class="mt-3 text-[#8892a4] text-[15px] leading-relaxed">Upload any MRI brain scan image in PNG or JPG format. The system accepts standard medical imaging formats.</p>
+            <h3 class="mt-4 text-white font-bold text-[18px]">Upload MRI Scan</h3>
+            <p class="mt-3 text-[#8892a4] text-[14px] leading-relaxed">
+              Drop any PNG or JPG brain MRI into the Diagnostic tool. Standard formats from any medical imaging source work.
+            </p>
           </article>
+
           <article class="step-card bg-card border border-[#1a1a2e] rounded-2xl p-8">
             <div class="text-[48px] font-black text-[rgba(232,121,249,0.3)] leading-none">02</div>
             <div class="mt-4 text-2xl">🧠</div>
-            <h3 class="mt-4 text-white font-bold text-[20px]">CNN Model Analyzes</h3>
-            <p class="mt-3 text-[#8892a4] text-[15px] leading-relaxed">A VGG16-based convolutional neural network preprocesses and analyzes the scan. Grad-CAM generates a heatmap showing exactly where the model focused.</p>
+            <h3 class="mt-4 text-white font-bold text-[18px]">CNN Model Analyzes</h3>
+            <p class="mt-3 text-[#8892a4] text-[14px] leading-relaxed">
+              VGG16 processes the scan and outputs class probabilities. Grad-CAM then generates a heatmap showing which regions drove the prediction.
+            </p>
           </article>
+
           <article class="step-card bg-card border border-[#1a1a2e] rounded-2xl p-8">
             <div class="text-[48px] font-black text-[rgba(232,121,249,0.3)] leading-none">03</div>
             <div class="mt-4 text-2xl">📊</div>
-            <h3 class="mt-4 text-white font-bold text-[20px]">Get Results</h3>
-            <p class="mt-3 text-[#8892a4] text-[15px] leading-relaxed">Receive instant classification across 4 categories with confidence percentage and AI focus area overlay highlighting regions of interest.</p>
+            <h3 class="mt-4 text-white font-bold text-[18px]">Learn to Read MRIs </h3>
+            <p class="mt-3 text-[#8892a4] text-[14px] leading-relaxed">
+            Training Mode promts the user to guess the tumor type on real MRI scans, annotate regions, and get detailed visual and ligustic guidance on what to look for.
+            </p>
           </article>
+
         </div>
       </div>
     </section>
- 
+
+    <!-- FOOTER -->
     <footer class="py-10 border-t border-[#1a1a2e]">
       <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row gap-3 justify-between text-[#8892a4] text-[13px]">
-        <div>CNN Tumor Detection — Built by Aydin Moideen</div>
+        <div>
+          CNN Tumor Detection — Built by
+          <a href="mailto:aydinmoideen@gmail.com" class="text-[#a78bfa] hover:underline">
+            Aydin Moideen
+          </a>
+        </div>
+        
+        <div class="mt-1 text-[#6b7280]">
+          Contact Info: <a href="mailto:aydinmoideen@gmail.com" class="text-[#a78bfa] hover:underline">Gmail</a>
+        </div>
         <div>For educational purposes only. Not a medical diagnosis tool.</div>
       </div>
     </footer>
-  </div>
- 
+
+  </div><!-- /content-layer -->
+
+  <!-- ══════════════════════════════════════
+       NEURAL NETWORK BACKGROUND ANIMATION
+       Nodes (soma), axons, dendrites, and
+       travelling signal pulses
+  ══════════════════════════════════════ -->
   <script>
-    (function initParticles() {
-      const canvas = document.getElementById("particles-canvas");
-      const ctx = canvas.getContext("2d");
-      const particles = [];
-      const count = 40;
-      function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-      resize();
-      window.addEventListener("resize", resize);
-      for (let i = 0; i < count; i++) {
-        particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 2 + 1, dx: (Math.random() - 0.5) * 0.35, dy: (Math.random() - 0.5) * 0.35 });
-      }
-      function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(255,255,255,0.08)";
-        for (const p of particles) {
-          p.x += p.dx; p.y += p.dy;
-          if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
-          if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+  (function initNeurons() {
+    const canvas = document.getElementById('neuro-canvas');
+    const ctx    = canvas.getContext('2d');
+
+    let W, H, nodes, edges, pulses;
+
+    const NODE_COUNT   = 38;
+    const EDGE_DIST    = 200;
+    const SOMA_R       = 3.5;
+    const PULSE_SPEED  = 0.6;
+    const NODE_COLOR   = 'rgba(167,139,250,0.55)';
+    const AXON_COLOR   = 'rgba(167,139,250,0.10)';
+    const PULSE_COLOR  = 'rgba(232,121,249,0.9)';
+    const DENDRITE_COLOR = 'rgba(167,139,250,0.13)';
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function buildGraph() {
+      nodes = Array.from({ length: NODE_COUNT }, () => ({
+        x:  Math.random() * W,
+        y:  Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.18,
+        vy: (Math.random() - 0.5) * 0.18,
+        // small dendrite branches (2-4 per node)
+        dendrites: Array.from({ length: 2 + Math.floor(Math.random() * 3) }, () => ({
+          angle:  Math.random() * Math.PI * 2,
+          length: 18 + Math.random() * 26,
+          forks:  Math.random() > 0.5,
+        })),
+      }));
+
+      edges  = [];
+      pulses = [];
+    }
+
+    function computeEdges() {
+      edges = [];
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          if (Math.sqrt(dx*dx + dy*dy) < EDGE_DIST) edges.push([i, j]);
         }
-        requestAnimationFrame(animate);
       }
-      animate();
-    })();
- 
-    (function initCountUp() {
-      const numbers = Array.from(document.querySelectorAll("[data-count-target]"));
-      let started = false;
-      function animateValue(el, target, suffix) {
-        const duration = 1400; const start = performance.now();
-        const isFloat = String(target).includes("."); const endVal = parseFloat(target);
-        function frame(now) {
-          const p = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - p, 3); const value = endVal * eased;
-          el.textContent = (isFloat ? value.toFixed(1) : Math.round(value).toLocaleString()) + (suffix || "");
-          if (p < 1) requestAnimationFrame(frame);
+    }
+
+    function spawnPulse() {
+      if (!edges.length) return;
+      const edge = edges[Math.floor(Math.random() * edges.length)];
+      pulses.push({ edge, t: 0, dir: Math.random() > 0.5 ? 1 : -1 });
+    }
+
+    function drawDendrites(n) {
+      for (const d of n.dendrites) {
+        const ex = n.x + Math.cos(d.angle) * d.length;
+        const ey = n.y + Math.sin(d.angle) * d.length;
+        ctx.beginPath();
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(ex, ey);
+        ctx.strokeStyle = DENDRITE_COLOR;
+        ctx.lineWidth   = 0.8;
+        ctx.stroke();
+        if (d.forks) {
+          const fa = d.angle + 0.45;
+          const fb = d.angle - 0.45;
+          const fl = d.length * 0.45;
+          ctx.beginPath(); ctx.moveTo(ex, ey);
+          ctx.lineTo(ex + Math.cos(fa)*fl, ey + Math.sin(fa)*fl);
+          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(ex, ey);
+          ctx.lineTo(ex + Math.cos(fb)*fl, ey + Math.sin(fb)*fl);
+          ctx.stroke();
         }
-        requestAnimationFrame(frame);
       }
-      const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting && !started) {
-            started = true;
-            numbers.forEach(function(n) { animateValue(n, n.getAttribute("data-count-target"), n.getAttribute("data-count-suffix") || ""); });
-            observer.disconnect();
-          }
-        });
-      }, { threshold: 0.35 });
-      const statsSection = numbers[0] ? numbers[0].closest("section") : null;
-      if (statsSection) observer.observe(statsSection);
-    })();
+    }
+
+    function drawAxonTerminal(x, y, angle) {
+      // small bulb at synapse end
+      const tx = x + Math.cos(angle) * 5;
+      const ty = y + Math.sin(angle) * 5;
+      ctx.beginPath();
+      ctx.arc(tx, ty, 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(232,121,249,0.35)';
+      ctx.fill();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // move nodes
+      for (const n of nodes) {
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0) n.x = W; if (n.x > W) n.x = 0;
+        if (n.y < 0) n.y = H; if (n.y > H) n.y = 0;
+      }
+
+      // recompute edges every frame (nodes move slowly, cheap enough)
+      computeEdges();
+
+      // draw dendrites
+      for (const n of nodes) drawDendrites(n);
+
+      // draw axon edges
+      for (const [i, j] of edges) {
+        const ni = nodes[i], nj = nodes[j];
+        const dx = nj.x - ni.x, dy = nj.y - ni.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const alpha = 1 - dist / EDGE_DIST;
+        ctx.beginPath();
+        ctx.moveTo(ni.x, ni.y);
+        ctx.lineTo(nj.x, nj.y);
+        ctx.strokeStyle = `rgba(167,139,250,${(alpha * 0.18).toFixed(3)})`;
+        ctx.lineWidth   = 0.8;
+        ctx.stroke();
+        // axon terminal at each end
+        const angle = Math.atan2(dy, dx);
+        drawAxonTerminal(nj.x, nj.y, angle);
+        drawAxonTerminal(ni.x, ni.y, angle + Math.PI);
+      }
+
+      // draw soma (cell bodies)
+      for (const n of nodes) {
+        // outer glow
+        const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, SOMA_R * 3.5);
+        grd.addColorStop(0, 'rgba(167,139,250,0.25)');
+        grd.addColorStop(1, 'rgba(167,139,250,0)');
+        ctx.beginPath(); ctx.arc(n.x, n.y, SOMA_R * 3.5, 0, Math.PI*2);
+        ctx.fillStyle = grd; ctx.fill();
+        // core
+        ctx.beginPath(); ctx.arc(n.x, n.y, SOMA_R, 0, Math.PI*2);
+        ctx.fillStyle = NODE_COLOR; ctx.fill();
+      }
+
+      // move & draw pulses
+      pulses = pulses.filter(p => {
+        p.t += PULSE_SPEED / EDGE_DIST;
+        if (p.t > 1) return false;
+        const [i, j] = p.edge;
+        const ni = nodes[i], nj = nodes[j];
+        const t = p.dir === 1 ? p.t : 1 - p.t;
+        const px = ni.x + (nj.x - ni.x) * t;
+        const py = ni.y + (nj.y - ni.y) * t;
+        // glow
+        const g = ctx.createRadialGradient(px, py, 0, px, py, 7);
+        g.addColorStop(0, PULSE_COLOR);
+        g.addColorStop(1, 'rgba(232,121,249,0)');
+        ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2);
+        ctx.fillStyle = g; ctx.fill();
+        // core dot
+        ctx.beginPath(); ctx.arc(px, py, 2.2, 0, Math.PI*2);
+        ctx.fillStyle = '#fff'; ctx.fill();
+        return true;
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    buildGraph();
+    window.addEventListener('resize', () => { resize(); buildGraph(); });
+    // spawn a pulse every ~420 ms
+    setInterval(spawnPulse, 420);
+    draw();
+  })();
+
+
+  // ── Count-up animation ──
+  (function initCountUp() {
+    const numbers = Array.from(document.querySelectorAll('[data-count-target]'));
+    let started = false;
+    function animateValue(el, target, suffix) {
+      const duration = 1400, start = performance.now();
+      const isFloat = String(target).includes('.');
+      const endVal  = parseFloat(target);
+      function frame(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const value = endVal * eased;
+        el.textContent = (isFloat ? value.toFixed(1) : Math.round(value).toLocaleString()) + (suffix || '');
+        if (p < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !started) {
+          started = true;
+          numbers.forEach(n => animateValue(n, n.getAttribute('data-count-target'), n.getAttribute('data-count-suffix') || ''));
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.35 });
+    const section = numbers[0]?.closest('section');
+    if (section) observer.observe(section);
+  })();
   </script>
+
 </body>
 </html>

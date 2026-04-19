@@ -1,700 +1,800 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain MRI Analysis</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        bg: {
-                            primary: '#0d0a14',
-                            secondary: '#120d1c',
-                            surface: '#1a1228',
-                            elevated: '#2a1f3d'
-                        },
-                        accent: '#F0D6F2',
-                        text: {
-                            primary: '#f0eaf2',
-                            muted: '#9b8aaa'
-                        },
-                        border: '#2e2040',
-                        success: '#4ade80',
-                        error: '#f87171'
-                    },
-                    fontFamily: {
-                        sans: ['DM Sans', 'sans-serif'],
-                        mono: ['IBM Plex Mono', 'monospace']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background: linear-gradient(180deg, #0d0a14 0%, #120d1c 100%);
-            min-height: 100vh;
-        }
-        .tab-active {
-            background-color: #2a1f3d;
-            color: #F0D6F2;
-        }
-        .tab-inactive {
-            background-color: transparent;
-            color: #9b8aaa;
-        }
-        .dropzone-active {
-            border-color: #F0D6F2;
-            background-color: rgba(240, 214, 242, 0.05);
-        }
-        .prob-bar {
-            transition: width 150ms ease-out;
-        }
-        .canvas-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-        .canvas-wrapper canvas {
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>CNN Brain Tumor Detection</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+   <style>
+       :root {
+           --bg: #0A0A0F; --surface: #14141F; --accent: #A78BFA;
+           --accent-glow: rgba(167,139,250,0.3); --text-main: #E2E2E2; --text-dim: #8892A4;
+           --tech-font: 'JetBrains Mono', monospace;
+       }
+       body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; }
+       .panel-header { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; opacity: 0.5; letter-spacing: 0.18em; margin-bottom: 1rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; }
+       .tech-label { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+       .tech-value { font-family: var(--tech-font); font-size: 11px; text-transform: uppercase; }
+       .panel { border: 1px solid rgba(167,139,250,0.1); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; }
+       .custom-slider { -webkit-appearance: none; width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 5px; outline: none; }
+       .custom-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--accent); cursor: pointer; border-radius: 50%; box-shadow: 0 0 10px var(--accent-glow); }
+       .tab-btn { position: relative; padding: 0.5rem 1.5rem; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.4; transition: opacity 0.3s; }
+       .tab-btn.active { opacity: 1; border-bottom: 2px solid var(--accent); }
+       .hidden { display: none; }
+       .btn-action { background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2); transition: all 0.2s; }
+       .btn-action:hover { background: rgba(167,139,250,0.2); border-color: var(--accent); }
+       .btn-action.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+       .tool-label { font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.6; }
+       canvas { touch-action: none; position: absolute; top: 0; left: 0; }
+       .viewer-corners { position: absolute; width: 40px; height: 40px; border-color: rgba(167,139,250,0.3); border-style: solid; pointer-events: none; }
+       .choice-btn { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; }
+       .color-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; flex-shrink: 0; }
+       .color-dot.active { border-color: white; transform: scale(1.2); }
+       .color-dot.red { background: rgba(239,68,68,0.85); }
+       .color-dot.yellow { background: rgba(234,179,8,0.85); }
+       .color-dot.green { background: rgba(34,197,94,0.85); }
+       .conf-bar-bg { background: rgba(255,255,255,0.06); border-radius: 4px; height: 6px; width: 100%; overflow: hidden; }
+       .conf-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+       .scan-viewer {
+           position: absolute;
+           inset: 0;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+       }
+       .scan-viewer img.base-img {
+           position: absolute;
+           inset: 0;
+           width: 100%;
+           height: 100%;
+           object-fit: contain;
+           display: block;
+       }
+       .scan-viewer img.heat-img {
             position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .quiz-btn {
-            transition: all 150ms ease;
-        }
-        .quiz-btn:hover:not(:disabled) {
-            background-color: #2a1f3d;
-            border-color: #F0D6F2;
-        }
-        .quiz-btn.correct {
-            background-color: rgba(74, 222, 128, 0.15);
-            border-color: #4ade80;
-            color: #4ade80;
-        }
-        .quiz-btn.wrong {
-            background-color: rgba(248, 113, 113, 0.15);
-            border-color: #f87171;
-            color: #f87171;
-        }
-        .tool-btn.active {
-            border-color: #F0D6F2;
-            color: #F0D6F2;
-        }
-        .color-swatch.active {
-            transform: scale(1.15);
-            box-shadow: 0 0 0 2px #F0D6F2;
-        }
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background: #2e2040;
-            border-radius: 4px;
-            height: 6px;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            background: #F0D6F2;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
-            background: #F0D6F2;
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-        }
-    </style>
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            mix-blend-mode: screen;
+            pointer-events: none;
+
+            transition: opacity 0.35s ease-in-out;
+            will-change: opacity;
+}
+       .scan-viewer canvas {
+           position: absolute;
+           inset: 0;
+           width: 100%;
+           height: 100%;
+           cursor: crosshair;
+           z-index: 20;
+       }
+
+       .file-drop-zone {
+           border: 1px dashed rgba(167,139,250,0.25);
+           border-radius: 8px;
+           padding: 1rem;
+           text-align: center;
+           cursor: pointer;
+           transition: all 0.2s;
+           background: rgba(167,139,250,0.03);
+       }
+       .file-drop-zone:hover, .file-drop-zone.drag-over {
+           border-color: rgba(167,139,250,0.6);
+           background: rgba(167,139,250,0.08);
+       }
+   </style>
 </head>
-<body class="font-sans text-text-primary">
-    <div class="min-h-screen p-4 md:p-8">
-        <!-- Header -->
-        <header class="max-w-6xl mx-auto mb-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-semibold text-text-primary">Brain MRI Analysis</h1>
-                    <p class="text-sm text-text-muted mt-1">AI-Powered Tumor Classification</p>
-                </div>
-                <a href="/" class="text-sm text-text-muted hover:text-accent transition-colors duration-150">Back to Home</a>
-            </div>
-        </header>
+<body class="h-screen flex flex-col">
+   <header class="h-14 flex items-center px-8 border-b border-white/5 shrink-0">
+       <button onclick="location.href='/'" class="flex items-center gap-2 text-[#8892A4] hover:text-white transition-colors group mr-auto">
+           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+           <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">Home</span>
+       </button>
+       <div class="flex gap-4">
+           <button onclick="switchTab('diagnosis')" id="diag-tab" class="tab-btn active">Diagnosis</button>
+           <button onclick="switchTab('training')" id="train-tab" class="tab-btn">Training</button>
+       </div>
+       <div class="w-20 ml-auto"></div>
+   </header>
 
-        <!-- Tab Navigation -->
-        <div class="max-w-6xl mx-auto mb-6">
-            <div class="inline-flex bg-bg-surface rounded-lg p-1 border border-border">
-                <button id="tab-diagnostic" onclick="switchTab('diagnostic')" class="tab-active px-5 py-2 rounded-md text-sm font-medium transition-all duration-150">Diagnostic Mode</button>
-                <button id="tab-study" onclick="switchTab('study')" class="tab-inactive px-5 py-2 rounded-md text-sm font-medium transition-all duration-150">Study Mode</button>
-            </div>
-        </div>
+   <main class="flex-1 p-4 overflow-hidden" style="min-height:0;">
 
-        <!-- Diagnostic Mode -->
-        <div id="diagnostic-mode" class="max-w-6xl mx-auto">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Upload Section -->
-                <div class="bg-bg-surface rounded-xl border border-border p-6">
-                    <h2 class="text-lg font-semibold mb-4">Upload MRI Scan</h2>
-                    
-                    <!-- Dropzone -->
-                    <div id="dropzone" class="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-accent/50 transition-colors duration-150">
-                        <input type="file" id="file-input" accept="image/*" class="hidden">
-                        <div id="dropzone-content">
-                            <svg class="w-12 h-12 mx-auto text-text-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                            <p class="text-text-muted mb-2">Drag and drop your MRI scan here</p>
-                            <p class="text-sm text-text-muted">or click to browse</p>
-                        </div>
-                        <div id="preview-container" class="hidden">
-                            <img id="preview-image" class="max-h-64 mx-auto rounded-lg" alt="Preview">
-                            <p id="file-name" class="text-sm text-text-muted mt-2"></p>
-                        </div>
-                    </div>
+       <!-- ══ DIAGNOSIS SECTION ══ -->
+       <section id="diagnosis-section" class="h-full grid grid-cols-[260px_1fr_280px] gap-4">
 
-                    <!-- Analyze Button -->
-                    <button id="analyze-btn" onclick="analyzeImage()" disabled class="w-full mt-4 bg-accent text-bg-primary font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity duration-150">Analyze Scan</button>
+           <!-- Left -->
+           <div class="flex flex-col gap-3 h-full overflow-y-auto pr-1 min-h-0">
+               <div class="panel">
+                   <div class="panel-header">Input Properties</div>
+                   <div class="space-y-3">
+                       <div class="flex justify-between items-center"><span class="tech-label">File:</span><span class="tech-value" id="prop-file">---</span></div>
+                       <div class="flex justify-between items-center"><span class="tech-label">Original Res:</span><span class="tech-value" id="prop-res">---</span></div>
+                       <div class="flex justify-between items-center"><span class="tech-label">Format:</span><span class="tech-value" id="prop-format">---</span></div>
+                   </div>
+               </div>
+               <div class="panel">
+                   <div class="panel-header">Grad-CAM Config</div>
+                   <div class="space-y-4">
+                       <div class="space-y-2">
+                           <div class="flex justify-between items-center"><span class="tech-label">Opacity:</span><span class="tech-value" id="opacity-val">50%</span></div>
+                           <input type="range" id="diag-opacity" class="custom-slider" min="0" max="100" value="50">
+                       </div>
+                       <div class="flex justify-between items-center">
+                           <span class="tech-label">Overlay:</span>
+                           <button onclick="toggleOverlay('diag')" id="diag-overlay-btn" class="px-3 py-1 rounded border border-white/10 text-[9px] uppercase font-bold tracking-widest bg-white/5 hover:bg-white/10" style="font-family:'Inter',sans-serif;">Visible</button>
+                       </div>
+                       <div class="flex justify-between items-center">
+                           <span class="tech-label">Layer:</span>
+                           <select id="diag-layer" onchange="setLayer(this.value)" class="bg-[#14141F] border border-white/10 text-[10px] px-2 py-1 rounded uppercase font-bold tracking-widest text-[#A78BFA] outline-none" style="font-family:'Inter',sans-serif;">
+                               <option value="Top">Top</option>
+                               <option value="Middle">Middle</option>
+                               <option value="Bottom" selected>Bottom</option>
+                           </select>
+                       </div>
+                   </div>
+               </div>
+               <div class="panel">
+                   <div class="panel-header">Toolbox</div>
+                   <div class="grid grid-cols-3 gap-2 mb-3">
+                       <button onclick="setTool('brush')" id="diag-brush" class="btn-action p-3 rounded-lg active flex flex-col items-center gap-1.5">
+                           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                           <span class="tool-label">Draw</span>
+                       </button>
+                       <button onclick="setTool('eraser')" id="diag-eraser" class="btn-action p-3 rounded-lg flex flex-col items-center gap-1.5">
+                           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                           <span class="tool-label">Erase</span>
+                       </button>
+                       <button onclick="setTool('box')" id="diag-box" class="btn-action p-3 rounded-lg flex flex-col items-center gap-1.5">
+                           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M4 6h16M4 6v12M20 6v12M4 18h16"/></svg>
+                           <span class="tool-label">Box</span>
+                       </button>
+                   </div>
+                   <div class="flex items-center gap-3 mb-3">
+                       <span class="tech-label">Color:</span>
+                       <div class="flex gap-2">
+                           <div class="color-dot red active" onclick="setColor('red')" id="color-red-diag"></div>
+                           <div class="color-dot yellow" onclick="setColor('yellow')" id="color-yellow-diag"></div>
+                           <div class="color-dot green" onclick="setColor('green')" id="color-green-diag"></div>
+                       </div>
+                   </div>
+                   <button onclick="clearCanvas()" style="font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;" class="opacity-40 hover:opacity-100 transition-opacity">Clear Layer</button>
+               </div>
 
-                    <!-- Loading State -->
-                    <div id="loading" class="hidden mt-4 text-center">
-                        <div class="inline-flex items-center gap-2 text-text-muted">
-                            <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span>Analyzing...</span>
-                        </div>
-                    </div>
+               <!-- Confidence Breakdown (diagnosis) -->
+               <div class="panel flex-1 min-h-0">
+                   <div class="panel-header">Confidence Breakdown</div>
+                   <div id="diag-conf-empty" class="flex-1 flex items-center justify-center opacity-30 text-center" style="font-family:'Inter',sans-serif;font-size:10px;letter-spacing:0.1em;">Upload &amp; scan to see<br/>probability distribution</div>
+                   <div id="diag-conf-bars" class="space-y-3 hidden">
+                       <div><div class="flex justify-between mb-1"><span class="tech-label text-[#ef4444]">Glioma</span><span class="tech-value text-[11px]" id="diag-conf-glioma-pct">0%</span></div><div class="conf-bar-bg"><div id="diag-conf-glioma-bar" class="conf-bar-fill" style="width:0%;background:#ef4444;"></div></div></div>
+                       <div><div class="flex justify-between mb-1"><span class="tech-label text-[#f59e0b]">Meningioma</span><span class="tech-value text-[11px]" id="diag-conf-meningioma-pct">0%</span></div><div class="conf-bar-bg"><div id="diag-conf-meningioma-bar" class="conf-bar-fill" style="width:0%;background:#f59e0b;"></div></div></div>
+                       <div><div class="flex justify-between mb-1"><span class="tech-label text-[#A78BFA]">Pituitary</span><span class="tech-value text-[11px]" id="diag-conf-pituitary-pct">0%</span></div><div class="conf-bar-bg"><div id="diag-conf-pituitary-bar" class="conf-bar-fill" style="width:0%;background:#A78BFA;"></div></div></div>
+                       <div><div class="flex justify-between mb-1"><span class="tech-label text-[#10b981]">No Tumor</span><span class="tech-value text-[11px]" id="diag-conf-notumor-pct">0%</span></div><div class="conf-bar-bg"><div id="diag-conf-notumor-bar" class="conf-bar-fill" style="width:0%;background:#10b981;"></div></div></div>
+                       <div class="pt-2 border-t border-white/5"><p class="tech-label mb-1">Model Verdict</p><p class="text-[#A78BFA] font-bold text-sm" id="diag-conf-verdict" style="font-family:'Inter',sans-serif;">—</p></div>
+                   </div>
+               </div>
+           </div>
 
-                    <!-- Error Message -->
-                    <div id="error-message" class="hidden mt-4 p-3 bg-error/10 border border-error/30 rounded-lg text-error text-sm"></div>
-                </div>
+           <!-- Centre viewer -->
+           <div class="relative bg-[#07070B] rounded-xl overflow-hidden"
+                id="diag-container"
+                ondragover="event.preventDefault()"
+                ondrop="handleDiagDrop(event)">
+               <div class="viewer-corners top-4 left-4 border-t-2 border-l-2"></div>
+               <div class="viewer-corners top-4 right-4 border-t-2 border-r-2"></div>
+               <div class="viewer-corners bottom-4 left-4 border-b-2 border-l-2"></div>
+               <div class="viewer-corners bottom-4 right-4 border-b-2 border-r-2"></div>
 
-                <!-- Results Section -->
-                <div id="results-section" class="hidden bg-bg-surface rounded-xl border border-border p-6">
-                    <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
-                    
-                    <!-- Image with Heatmap -->
-                    <div class="mb-6">
-                        <div class="relative inline-block w-full">
-                            <img id="result-original" class="w-full rounded-lg" alt="Original MRI">
-                            <img id="result-heatmap" class="absolute top-0 left-0 w-full h-full rounded-lg transition-opacity duration-150 object-cover" alt="Heatmap" style="opacity: 0;">
-                        </div>
-                        
-                        <!-- Heatmap Controls -->
-                        <div class="mt-4 flex items-center gap-4 flex-wrap">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="heatmap-toggle" onchange="toggleHeatmap()" class="w-4 h-4 rounded border-border bg-bg-elevated accent-accent">
-                                <span class="text-sm text-text-muted">Show Heatmap</span>
-                            </label>
-                            <div class="flex-1 flex items-center gap-2 min-w-[150px]">
-                                <span class="text-sm text-text-muted">Opacity:</span>
-                                <input type="range" id="heatmap-opacity" min="0" max="100" value="70" oninput="updateHeatmapOpacity()" class="flex-1">
-                            </div>
-                        </div>
-                    </div>
+               <div id="diag-empty" class="absolute inset-0 flex flex-col items-center justify-center text-center z-10 cursor-pointer" onclick="document.getElementById('file-input').click()">
+                   <input type="file" id="file-input" class="hidden" accept="image/*">
+                   <div class="w-14 h-14 bg-[#A78BFA]/10 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
+                       <svg class="w-7 h-7 text-[#A78BFA]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                   </div>
+                   <p style="font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;" class="text-[#8892A4] mb-3">Drop or click to upload scan</p>
+                   <span class="px-5 py-2 rounded border border-[#A78BFA]/30 text-[#A78BFA] text-[10px] font-bold uppercase tracking-widest hover:bg-[#A78BFA]/10 transition-all" style="font-family:'Inter',sans-serif;">Browse Files</span>
+               </div>
 
-                    <!-- Prediction -->
-                    <div class="mb-6 p-4 bg-bg-elevated rounded-lg">
-                        <p class="text-sm text-text-muted mb-1">Prediction</p>
-                        <p id="prediction-label" class="text-2xl font-semibold text-accent font-mono"></p>
-                        <p id="confidence-label" class="text-sm text-text-muted mt-1 font-mono"></p>
-                    </div>
+               <div id="diag-viewer" class="scan-viewer hidden">
+                   <img id="diag-base-img" class="base-img" src="" alt="">
+                   <img id="diag-heatmap-img" class="heat-img" src="" style="opacity:0.5;">
+                   <canvas id="diag-canvas"></canvas>
+               </div>
 
-                    <!-- Probability Bars -->
-                    <div class="space-y-3 mb-6">
-                        <p class="text-sm text-text-muted mb-2">Class Probabilities</p>
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm w-24 text-text-muted">Glioma</span>
-                                <div class="flex-1 h-2 bg-bg-elevated rounded-full overflow-hidden">
-                                    <div id="prob-glioma" class="prob-bar h-full bg-accent rounded-full" style="width: 0%"></div>
-                                </div>
-                                <span id="prob-glioma-text" class="text-sm font-mono text-text-muted w-14 text-right">0%</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm w-24 text-text-muted">Meningioma</span>
-                                <div class="flex-1 h-2 bg-bg-elevated rounded-full overflow-hidden">
-                                    <div id="prob-meningioma" class="prob-bar h-full bg-accent rounded-full" style="width: 0%"></div>
-                                </div>
-                                <span id="prob-meningioma-text" class="text-sm font-mono text-text-muted w-14 text-right">0%</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm w-24 text-text-muted">Pituitary</span>
-                                <div class="flex-1 h-2 bg-bg-elevated rounded-full overflow-hidden">
-                                    <div id="prob-pituitary" class="prob-bar h-full bg-accent rounded-full" style="width: 0%"></div>
-                                </div>
-                                <span id="prob-pituitary-text" class="text-sm font-mono text-text-muted w-14 text-right">0%</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm w-24 text-text-muted">No Tumor</span>
-                                <div class="flex-1 h-2 bg-bg-elevated rounded-full overflow-hidden">
-                                    <div id="prob-notumor" class="prob-bar h-full bg-accent rounded-full" style="width: 0%"></div>
-                                </div>
-                                <span id="prob-notumor-text" class="text-sm font-mono text-text-muted w-14 text-right">0%</span>
-                            </div>
-                        </div>
-                    </div>
+               <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                   <span id="diag-coord-display" class="mono text-[9px] tracking-widest opacity-30">COORD: 000, 000</span>
+               </div>
+               <button id="analyze-btn" class="absolute z-40 hidden" style="bottom:2rem;left:50%;transform:translateX(-50%);">
+                   <div class="bg-[#A78BFA] px-8 py-3 rounded text-[#0A0A0F] font-black text-[11px] uppercase tracking-[0.3em] hover:scale-105 transition-transform" style="font-family:'Inter',sans-serif;">Initialize Scan</div>
+               </button>
+           </div>
 
-                    <!-- Explanation -->
-                    <div class="p-4 bg-bg-elevated rounded-lg mb-4">
-                        <p class="text-sm text-text-muted mb-2">About this classification</p>
-                        <p id="explanation-text" class="text-sm text-text-primary leading-relaxed"></p>
-                    </div>
+           <!-- Right -->
+           <div class="panel h-full overflow-y-auto flex flex-col gap-4">
+               <div class="panel-header">Diagnostic Insight</div>
+               <div id="insight-empty" class="flex items-center justify-center text-center px-6 opacity-40" style="font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;min-height:80px;">Awaiting Data_Packet</div>
+               <div id="insight-content" class="hidden space-y-4">
+                   <div class="text-center py-5 rounded-lg bg-[#A78BFA]/5 border border-[#A78BFA]/10">
+                       <p class="tech-label mb-2">Confidence Score</p>
+                       <p class="text-4xl font-extrabold text-[#A78BFA]" id="res-confidence">0%</p>
+                   </div>
+                   <div class="space-y-1.5">
+                       <p class="tech-label">Classification:</p>
+                       <p class="text-lg font-black uppercase tracking-wide" id="res-prediction">---</p>
+                   </div>
 
-                    <!-- Disclaimer -->
-                    <p class="text-xs text-text-muted text-center">Educational use only. Not intended for clinical diagnosis.</p>
-                </div>
-            </div>
-        </div>
+                   <div class="p-4 rounded-lg bg-white/5 border border-white/5">
+                       <p class="tech-label mb-2">Analysis Summary:</p>
+                       <p style="font-family:'Inter',sans-serif;font-size:12px;line-height:1.6;" class="text-[#8892A4] whitespace-pre-line" id="res-explanation"></p>
+                   </div>
 
-        <!-- Study Mode -->
-        <div id="study-mode" class="hidden max-w-6xl mx-auto">
-            <!-- Stats Bar -->
-            <div class="bg-bg-surface rounded-lg border border-border p-4 mb-6">
-                <div class="flex items-center justify-center gap-8 font-mono text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="text-text-muted">Streak:</span>
-                        <span id="stat-streak" class="text-accent font-semibold">0</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-text-muted">Accuracy:</span>
-                        <span id="stat-accuracy" class="text-accent font-semibold">0%</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-text-muted">Total:</span>
-                        <span id="stat-total" class="text-accent font-semibold">0</span>
-                    </div>
-                </div>
-            </div>
+                   <div id="right-drop-zone" class="file-drop-zone flex flex-col items-center justify-center gap-1" style="padding:1.4rem 1rem;"
+                        onclick="document.getElementById('file-input-right').click()"
+                        ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                        ondragleave="this.classList.remove('drag-over')"
+                        ondrop="handleRightDrop(event)">
+                       <input type="file" id="file-input-right" class="hidden" accept="image/*" onchange="handleFile(this.files[0])">
+                       <svg class="w-6 h-6 opacity-40 text-[#A78BFA]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                       <p style="font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;" class="text-[#8892A4]">Drop or click to swap scan</p>
+                   </div>
+               </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Image Viewer with Canvas -->
-                <div class="lg:col-span-2 bg-bg-surface rounded-xl border border-border p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold">MRI Scan</h2>
-                        <button onclick="loadStudyImage()" class="text-sm text-accent hover:underline">Skip</button>
-                    </div>
-                    
-                    <!-- Canvas Container -->
-                    <div id="canvas-container" class="bg-bg-elevated rounded-lg overflow-hidden flex items-center justify-center" style="min-height: 380px;">
-                        <div id="canvas-wrapper" class="canvas-wrapper hidden">
-                            <img id="study-image" alt="Study MRI">
-                            <canvas id="drawing-canvas" class="cursor-crosshair"></canvas>
-                        </div>
-                        <div id="study-loading" class="text-text-muted">Click "New Image" to start</div>
-                    </div>
+               <p class="mt-auto text-center opacity-20 text-white py-3" style="font-family:'Inter',sans-serif;font-size:9px;letter-spacing:0.1em;">For educational purposes only.<br/>Not intended for clinical diagnosis.</p>
+           </div>
+       </section>
 
-                    <!-- Drawing Tools -->
-                    <div class="mt-4 flex flex-wrap items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm text-text-muted">Tool:</span>
-                            <button id="tool-brush" onclick="setTool('brush')" class="tool-btn active px-3 py-1.5 text-sm bg-bg-elevated border border-border rounded-md transition-all duration-150">Brush</button>
-                            <button id="tool-eraser" onclick="setTool('eraser')" class="tool-btn px-3 py-1.5 text-sm bg-bg-elevated border border-border rounded-md transition-all duration-150">Eraser</button>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm text-text-muted">Color:</span>
-                            <button onclick="setColor('#ffffff')" class="color-swatch active w-6 h-6 rounded-full bg-white border border-border transition-transform duration-150" data-color="#ffffff"></button>
-                            <button onclick="setColor('#F0D6F2')" class="color-swatch w-6 h-6 rounded-full border border-border transition-transform duration-150" style="background-color: #F0D6F2;" data-color="#F0D6F2"></button>
-                            <button onclick="setColor('#fde047')" class="color-swatch w-6 h-6 rounded-full bg-yellow-300 border border-border transition-transform duration-150" data-color="#fde047"></button>
-                        </div>
-                        <button onclick="clearCanvas()" class="px-3 py-1.5 text-sm bg-bg-elevated border border-border rounded-md hover:border-error/50 hover:text-error transition-all duration-150">Clear</button>
-                        <button onclick="loadStudyImage()" class="ml-auto px-4 py-1.5 text-sm bg-accent text-bg-primary rounded-md hover:opacity-90 transition-opacity duration-150 font-medium">New Image</button>
-                    </div>
-                </div>
+       <!-- ══ TRAINING SECTION ══ -->
+       <section id="training-section" class="hidden h-full grid grid-cols-[260px_1fr_300px] gap-4">
 
-                <!-- Quiz Panel -->
-                <div class="bg-bg-surface rounded-xl border border-border p-6">
-                    <h2 class="text-lg font-semibold mb-4">What type of tumor is this?</h2>
-                    
-                    <div id="quiz-buttons" class="space-y-3">
-                        <button onclick="submitAnswer('glioma')" class="quiz-btn w-full py-3 px-4 text-left bg-bg-elevated border border-border rounded-lg text-text-primary transition-all duration-150" data-answer="glioma">Glioma</button>
-                        <button onclick="submitAnswer('meningioma')" class="quiz-btn w-full py-3 px-4 text-left bg-bg-elevated border border-border rounded-lg text-text-primary transition-all duration-150" data-answer="meningioma">Meningioma</button>
-                        <button onclick="submitAnswer('pituitary')" class="quiz-btn w-full py-3 px-4 text-left bg-bg-elevated border border-border rounded-lg text-text-primary transition-all duration-150" data-answer="pituitary">Pituitary Tumor</button>
-                        <button onclick="submitAnswer('notumor')" class="quiz-btn w-full py-3 px-4 text-left bg-bg-elevated border border-border rounded-lg text-text-primary transition-all duration-150" data-answer="notumor">No Tumor</button>
-                    </div>
+           <!-- Left -->
+           <div class="flex flex-col gap-3 h-full min-h-0 overflow-y-auto pr-1">
+               <div class="panel">
+                   <div class="panel-header">Session Stats</div>
+                   <div class="grid grid-cols-2 gap-px bg-white/5 rounded-lg border border-white/5 divide-x divide-white/5">
+                       <div class="p-4 text-center space-y-1"><p class="tech-label">Accuracy</p><p class="text-2xl font-black text-[#A78BFA]" id="stats-acc" style="font-family:'Inter',sans-serif;">0%</p></div>
+                       <div class="p-4 text-center space-y-1"><p class="tech-label">Streak</p><p class="text-2xl font-black text-pink-500" id="stats-streak" style="font-family:'Inter',sans-serif;">0</p></div>
+                   </div>
+                   <div class="mt-4 flex justify-between items-center px-1">
+                       <span class="tech-label">Analyzed:</span>
+                       <span class="text-[#A78BFA] font-bold text-sm" id="stats-total" style="font-family:'Inter',sans-serif;">0</span>
+                   </div>
+               </div>
+               <div class="panel">
+                   <div class="panel-header">Toolbox</div>
+                   <div class="grid grid-cols-3 gap-2 mb-3">
+                       <button onclick="setTool('brush')" id="train-brush" class="btn-action p-3 rounded-lg active flex flex-col items-center justify-center gap-1.5">
+                           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                           <span class="tool-label">Draw</span>
+                       </button>
+                       <button onclick="setTool('eraser')" id="train-eraser" class="btn-action p-3 rounded-lg flex flex-col items-center justify-center gap-1.5">
+                           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                           <span class="tool-label">Erase</span>
+                       </button>
+                       <button onclick="setTool('box')" id="train-box" class="btn-action p-3 rounded-lg flex flex-col items-center justify-center gap-1.5">
+                           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M4 6h16M4 6v12M20 6v12M4 18h16"/></svg>
+                           <span class="tool-label">Box</span>
+                       </button>
+                   </div>
+                   <div class="flex items-center gap-3 mb-3">
+                       <span class="tech-label">Color:</span>
+                       <div class="flex gap-2">
+                           <div class="color-dot red active" onclick="setColor('red')" id="color-red-train"></div>
+                           <div class="color-dot yellow" onclick="setColor('yellow')" id="color-yellow-train"></div>
+                           <div class="color-dot green" onclick="setColor('green')" id="color-green-train"></div>
+                       </div>
+                   </div>
+                   <button onclick="clearCanvas()" style="font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;" class="opacity-40 hover:opacity-100 transition-opacity">Clear Layer</button>
+                   <div id="train-opacity-ctrl" class="mt-4 pt-4 border-t border-white/5 hidden space-y-2">
+                       <div class="flex justify-between items-center"><span class="tech-label">Cam_Overlay:</span><span class="tech-value" id="train-opacity-val">50%</span></div>
+                       <input type="range" id="train-opacity" class="custom-slider" min="0" max="100" value="50">
+                   </div>
+               </div>
+               <div class="panel flex-1 min-h-0">
+                   <div class="panel-header">Confidence Breakdown</div>
+                   <div id="conf-empty" class="flex-1 flex items-center justify-center opacity-30 text-center" style="font-family:'Inter',sans-serif;font-size:10px;letter-spacing:0.1em;">Run a scan to see<br/>probability distribution</div>
+                   <div id="conf-bars" class="hidden space-y-3">
+                       <div><div class="flex justify-between mb-1"><span class="tech-label text-[#ef4444]">Glioma</span><span class="tech-value text-[11px]" id="conf-glioma-pct">0%</span></div><div class="conf-bar-bg"><div id="conf-glioma-bar" class="conf-bar-fill" style="width:0%;background:#ef4444;"></div></div></div>
+                       <div><div class="flex justify-between mb-1"><span class="tech-label text-[#f59e0b]">Meningioma</span><span class="tech-value text-[11px]" id="conf-meningioma-pct">0%</span></div><div class="conf-bar-bg"><div id="conf-meningioma-bar" class="conf-bar-fill" style="width:0%;background:#f59e0b;"></div></div></div>
+                       <div><div class="flex justify-between mb-1"><span class="tech-label text-[#A78BFA]">Pituitary</span><span class="tech-value text-[11px]" id="conf-pituitary-pct">0%</span></div><div class="conf-bar-bg"><div id="conf-pituitary-bar" class="conf-bar-fill" style="width:0%;background:#A78BFA;"></div></div></div>
+                       <div><div class="flex justify-between mb-1"><span class="tech-label text-[#10b981]">No Tumor</span><span class="tech-value text-[11px]" id="conf-notumor-pct">0%</span></div><div class="conf-bar-bg"><div id="conf-notumor-bar" class="conf-bar-fill" style="width:0%;background:#10b981;"></div></div></div>
+                       <div class="pt-2 border-t border-white/5"><p class="tech-label mb-1">Model Verdict</p><p class="text-[#A78BFA] font-bold text-sm" id="conf-verdict" style="font-family:'Inter',sans-serif;">—</p></div>
+                   </div>
+               </div>
+           </div>
 
-                    <!-- Feedback Section -->
-                    <div id="study-feedback" class="hidden mt-6 p-4 bg-bg-elevated rounded-lg">
-                        <p id="feedback-result" class="font-semibold mb-2"></p>
-                        <p id="feedback-explanation" class="text-sm text-text-muted leading-relaxed"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+           <!-- Centre viewer -->
+<div class="relative bg-[#07070B] rounded-xl overflow-hidden" id="train-container">
+
+    <div id="train-empty" class="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
+        <svg class="w-10 h-10 mx-auto text-[#A78BFA] opacity-20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016"/>
+        </svg>
+
+        <p style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;"
+           class="text-[#8892A4] mb-6">
+            Simulation Hub Ready
+        </p>
+
+        <button onclick="nextStudy()"
+            class="bg-[#A78BFA] px-8 py-3.5 rounded text-[#0A0A0F] font-black text-[11px] uppercase tracking-[0.25em] hover:scale-105 active:scale-95 transition-all"
+            style="font-family:'Inter',sans-serif;">
+            Initialize Session
+        </button>
     </div>
 
-    <script>
-        // State
-        let currentFile = null;
-        let heatmapBase64 = null;
-        let studyLabel = null;
-        let studyExplanation = null;
-        let answered = false;
-        let stats = { streak: 0, correct: 0, total: 0 };
+    <div id="train-viewer" class="scan-viewer hidden">
+        <img id="train-base-img" class="base-img grayscale brightness-110" src="" alt="">
+        <img id="train-heatmap-img" class="heat-img" src="" style="opacity:0;">
+        <canvas id="train-canvas"></canvas>
+    </div>
 
-        // Canvas state
-        let canvas, ctx;
-        let isDrawing = false;
-        let currentTool = 'brush';
-        let currentColor = '#ffffff';
-        let brushSize = 6;
+    <div id="train-loading"
+        class="absolute inset-0 bg-[#0A0A0F]/80 flex items-center justify-center hidden z-50"
+        style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:#A78BFA;">
+        Loading_Data_Packet...
+    </div>
 
-        // Tab switching
-        function switchTab(tab) {
-            const diagnosticTab = document.getElementById('tab-diagnostic');
-            const studyTab = document.getElementById('tab-study');
-            const diagnosticMode = document.getElementById('diagnostic-mode');
-            const studyMode = document.getElementById('study-mode');
+</div>
 
-            if (tab === 'diagnostic') {
-                diagnosticTab.className = 'tab-active px-5 py-2 rounded-md text-sm font-medium transition-all duration-150';
-                studyTab.className = 'tab-inactive px-5 py-2 rounded-md text-sm font-medium transition-all duration-150';
-                diagnosticMode.classList.remove('hidden');
-                studyMode.classList.add('hidden');
-            } else {
-                studyTab.className = 'tab-active px-5 py-2 rounded-md text-sm font-medium transition-all duration-150';
-                diagnosticTab.className = 'tab-inactive px-5 py-2 rounded-md text-sm font-medium transition-all duration-150';
-                studyMode.classList.remove('hidden');
-                diagnosticMode.classList.add('hidden');
-            }
-        }
+           <!-- Right -->
+           <div class="panel h-full flex flex-col overflow-y-auto">
+               <div class="panel-header">Classification Interface</div>
+               <div id="choices-area" class="space-y-2 pointer-events-none opacity-30">
+                   <button onclick="submitAnswer('glioma')" class="choice-btn w-full text-left p-4 rounded border border-white/10 hover:border-[#ef4444] hover:bg-[#ef4444]/5 transition-all text-white"><span class="text-[#ef4444] font-black mr-2">●</span>Glioma</button>
+                   <button onclick="submitAnswer('meningioma')" class="choice-btn w-full text-left p-4 rounded border border-white/10 hover:border-[#f59e0b] hover:bg-[#f59e0b]/5 transition-all text-white"><span class="text-[#f59e0b] font-black mr-2">●</span>Meningioma</button>
+                   <button onclick="submitAnswer('pituitary')" class="choice-btn w-full text-left p-4 rounded border border-white/10 hover:border-[#A78BFA] hover:bg-[#A78BFA]/5 transition-all text-white"><span class="text-[#A78BFA] font-black mr-2">●</span>Pituitary</button>
+                   <button onclick="submitAnswer('notumor')" class="choice-btn w-full text-left p-4 rounded border border-white/10 hover:border-[#10b981] hover:bg-[#10b981]/5 transition-all text-white"><span class="text-[#10b981] font-black mr-2">●</span>No Tumor</button>
+               </div>
+               <div id="train-feedback" class="mt-4 hidden flex-1 flex flex-col gap-3">
 
-        // Dropzone functionality
-        const dropzone = document.getElementById('dropzone');
-        const fileInput = document.getElementById('file-input');
-        const previewContainer = document.getElementById('preview-container');
-        const dropzoneContent = document.getElementById('dropzone-content');
-        const previewImage = document.getElementById('preview-image');
-        const fileName = document.getElementById('file-name');
-        const analyzeBtn = document.getElementById('analyze-btn');
-
-        dropzone.addEventListener('click', () => fileInput.click());
-
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('dropzone-active');
-        });
-
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('dropzone-active');
-        });
-
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('dropzone-active');
-            if (e.dataTransfer.files.length) {
-                handleFile(e.dataTransfer.files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length) {
-                handleFile(fileInput.files[0]);
-            }
-        });
-
-        function handleFile(file) {
-            if (!file.type.startsWith('image/')) {
-                showError('Please upload an image file.');
-                return;
-            }
-            currentFile = file;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImage.src = e.target.result;
-                fileName.textContent = file.name;
-                dropzoneContent.classList.add('hidden');
-                previewContainer.classList.remove('hidden');
-                analyzeBtn.disabled = false;
-                document.getElementById('results-section').classList.add('hidden');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function showError(message) {
-            const errorDiv = document.getElementById('error-message');
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
-        }
-
-        // Analyze image
-        async function analyzeImage() {
-            if (!currentFile) return;
-
-            const loading = document.getElementById('loading');
-            const errorDiv = document.getElementById('error-message');
-            const resultsSection = document.getElementById('results-section');
-
-            loading.classList.remove('hidden');
-            errorDiv.classList.add('hidden');
-            resultsSection.classList.add('hidden');
-            analyzeBtn.disabled = true;
-
-            const formData = new FormData();
-            formData.append('image', currentFile);
-
-            try {
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Analysis failed');
-                }
-
-                // Display results
-                document.getElementById('result-original').src = previewImage.src;
-                heatmapBase64 = data.heatmap_image;
-                document.getElementById('result-heatmap').src = 'data:image/png;base64,' + heatmapBase64;
-
-                const labelMap = { glioma: 'Glioma', meningioma: 'Meningioma', pituitary: 'Pituitary Tumor', notumor: 'No Tumor' };
-                document.getElementById('prediction-label').textContent = labelMap[data.prediction] || data.prediction;
-                document.getElementById('confidence-label').textContent = 'Confidence: ' + (data.confidence * 100).toFixed(1) + '%';
-
-                // Update probability bars
-                const probs = data.probabilities || {};
-
-                updateProbBar('glioma', probs.glioma || 0);
-                updateProbBar('meningioma', probs.meningioma || 0);
-                updateProbBar('pituitary', probs.pituitary || 0);
-                updateProbBar('notumor', probs.notumor || 0);
-
-                document.getElementById('explanation-text').textContent = data.explanation;
-
-                resultsSection.classList.remove('hidden');
-                document.getElementById('heatmap-toggle').checked = false;
-                document.getElementById('result-heatmap').style.opacity = '0';
-            } catch (error) {
-                showError(error.message);
-            } finally {
-                loading.classList.add('hidden');
-                analyzeBtn.disabled = false;
-            }
-        }
-
-        function updateProbBar(className, prob) {
-            const percentage = (prob * 100).toFixed(1);
-            document.getElementById('prob-' + className).style.width = percentage + '%';
-            document.getElementById('prob-' + className + '-text').textContent = percentage + '%';
-        }
-
-        // Heatmap controls
-        function toggleHeatmap() {
-            const heatmapImg = document.getElementById('result-heatmap');
-            const toggle = document.getElementById('heatmap-toggle');
-            const opacity = document.getElementById('heatmap-opacity').value / 100;
-            heatmapImg.style.opacity = toggle.checked ? opacity : 0;
-        }
-
-        function updateHeatmapOpacity() {
-            const heatmapImg = document.getElementById('result-heatmap');
-            const toggle = document.getElementById('heatmap-toggle');
-            const opacity = document.getElementById('heatmap-opacity').value / 100;
-            if (toggle.checked) {
-                heatmapImg.style.opacity = opacity;
-            }
-        }
-
-        // Study Mode
-        async function loadStudyImage() {
-            const studyImage = document.getElementById('study-image');
-            const canvasWrapper = document.getElementById('canvas-wrapper');
-            const studyLoading = document.getElementById('study-loading');
-            const drawingCanvas = document.getElementById('drawing-canvas');
-            const quizButtons = document.querySelectorAll('.quiz-btn');
-            const feedbackSection = document.getElementById('study-feedback');
-
-            // Reset state
-            answered = false;
-            canvasWrapper.classList.add('hidden');
-            studyLoading.style.display = 'block';
-            studyLoading.textContent = 'Loading image...';
-            feedbackSection.classList.add('hidden');
-
-            // Reset quiz buttons
-            quizButtons.forEach(btn => {
-                btn.classList.remove('correct', 'wrong');
-                btn.disabled = false;
-            });
-
-            try {
-                const response = await fetch('/api/study/image');
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to load image');
-                }
-
-                studyLabel = data.label;
-                studyExplanation = data.explanation;
-
-                studyImage.onload = () => {
-                    studyLoading.style.display = 'none';
-                    canvasWrapper.classList.remove('hidden');
-                    initCanvas();
-                };
-                studyImage.onerror = () => {
-                    studyLoading.textContent = 'Error loading image.';
-                };
-                studyImage.src = data.image_url;
-            } catch (error) {
-                studyLoading.textContent = 'Error loading image. Try again.';
-            }
-        }
-
-        function initCanvas() {
-            const studyImage = document.getElementById('study-image');
-            const drawingCanvas = document.getElementById('drawing-canvas');
-
-            canvas = drawingCanvas;
-            ctx = canvas.getContext('2d');
-
-            // Set canvas size to match image
-            canvas.width = studyImage.naturalWidth;
-            canvas.height = studyImage.naturalHeight;
-            canvas.style.width = studyImage.width + 'px';
-            canvas.style.height = studyImage.height + 'px';
-
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Event listeners
-            canvas.onmousedown = startDrawing;
-            canvas.onmousemove = draw;
-            canvas.onmouseup = stopDrawing;
-            canvas.onmouseout = stopDrawing;
-
-            // Touch support
-            canvas.ontouchstart = handleTouch;
-            canvas.ontouchmove = handleTouchMove;
-            canvas.ontouchend = stopDrawing;
-        }
-
-        function startDrawing(e) {
-            isDrawing = true;
-            draw(e);
-        }
-
-        function draw(e) {
-            if (!isDrawing || !ctx) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const x = (e.clientX - rect.left) * scaleX;
-            const y = (e.clientY - rect.top) * scaleY;
-
-            ctx.beginPath();
-            ctx.arc(x, y, brushSize * scaleX, 0, Math.PI * 2);
+                <div id="f-header" class="p-3 rounded-lg flex items-center gap-3"></div>
             
-            if (currentTool === 'eraser') {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.fill();
-                ctx.globalCompositeOperation = 'source-over';
-            } else {
-                ctx.fillStyle = currentColor;
-                ctx.globalAlpha = 0.5;
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
-        }
+                <div class="p-3 rounded-lg bg-white/5 border border-white/5">
+                    <p id="f-desc" class="text-[12px] text-[#8892A4] whitespace-pre-line"
+                       style="font-family:'Inter',sans-serif;line-height:1.7;"></p>
+                </div>
+            
+                <!-- 👇 MOVE IMAGE HERE -->
+                <div class="space-y-2">
+                    <p class="text-[9px] uppercase tracking-widest opacity-40">Reference Scan</p>
+                    <img id="f-location-img"
+                         src=""
+                         alt="reference scan"
+                         class="w-full rounded-lg object-cover border border-white/5">
+                </div>
+                
+            </div>
+                   <button onclick="nextStudy()" class="w-full bg-white/5 p-3 rounded text-white hover:bg-white/10 transition-all shrink-0" style="font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;"> Next Scan →</button>
+               </div>
+               <p class="mt-auto text-center opacity-20 text-white py-3 shrink-0" style="font-family:'Inter',sans-serif;font-size:9px;letter-spacing:0.1em;">For educational purposes only.<br/>Not intended for clinical diagnosis.</p>
+           </div>
+       </section>
+   </main>
 
-        function stopDrawing() {
-            isDrawing = false;
-        }
+   <script>
+   // ── Human-readable, jargon-light explanations ──────────────────────
+   const TUMOR_INFO = {
+       glioma: {
+           correct: `Good eye! Gliomas tend to look messy. The edges are blurry and the mass blends into the surrounding brain tissue rather than sitting cleanly apart from it. They usually show up in the frontal or temporal lobes and make the brain look a bit lopsided.\n\nThe giveaway: one side of the brain looks bigger or brighter than the other, with no clear boundary around the mass.`,
+           incorrect: `This was a Glioma, known to be easy to miss!\n\nGliomas are tricky because they don't have a clean shape. The bright area bleeds into healthy tissue with fuzzy, irregular edges. They tend to sit inside the brain (frontal or temporal lobe) rather than on the surface.\n\nA helpful rule: if the mass looks ragged and the brain seems off-balance side-to-side, think Glioma first.`
+       },
+       meningioma: {
+           correct: `Spot on! Meningiomas are actually one of the easier ones once you know what to look for. They grow from the brain's outer lining, so they sit right on the surface, you can often see the brain tissue getting pushed inward underneath it.\n\nThe shape is usually round and well-defined, almost like a ball resting on the edge. That clean outline is the big clue.`,
+           incorrect: `This was a Meningioma — here's how to spot it next time.\n\nMeningiomas grow along the brain's surface lining, so they appear near the outer edge of the brain. The shape is usually round and has clear, clean borders — it doesn't blend into the surrounding tissue like a glioma would. The brain underneath it looks compressed or pushed inward.\n\nA helpful rule: round shape + sitting on the surface = Meningioma.`
+       },
+       pituitary: {
+           correct: `Nice work! Pituitary tumors are all about location. They sit right at the base of the brain, in the center, that's the pituitary gland's home. They're usually small and fairly symmetric, which makes them look almost tidy compared to other tumor types.\n\nIf you see a bright spot sitting dead-center at the bottom of the brain, pituitary should jump to mind.`,
+           incorrect: `This was a Pituitary Tumor, location plays a keyrole here.\n\nThe pituitary gland lives at the very base of the brain, right in the middle. Tumors here show up as a small bright spot in that center-bottom area — they don't appear higher up or off to one side like gliomas or meningiomas do.\n\nA helpful rule: centered + low in the brain = Pituitary.`
+       },
+       notumor: {
+           correct: `Correct — this was a healthy scan! The key to spotting a clean brain is symmetry. Both halves should look like mirror images of each other, with no unexplained bright spots, dark patches, or areas that seem out of place.\n\nWhen everything lines up evenly and there's nothing that draws your eye, that's a good sign you're looking at a normal scan.`,
+           incorrect: `This scan actually had no tumor, it can be easy to second-guess yourself!\n\nHealthy brains are very symmetric. If you flip the image mentally, both sides should look nearly identical. There shouldn't be any mass, unusual bright areas, or tissue that looks compressed or pushed aside.\n\nA helpful rule: when in doubt, check symmetry. If both sides match, it's likely normal.`
+       }
+   };
 
-        function handleTouch(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = { clientX: touch.clientX, clientY: touch.clientY };
-            isDrawing = true;
-            draw(mouseEvent);
-        }
+   const BRUSH_COLORS = {
+       red:    { stroke:'rgba(239,68,68,0.40)',  box:'rgba(239,68,68,0.85)',  boxFill:'rgba(239,68,68,0.12)' },
+       yellow: { stroke:'rgba(234,179,8,0.40)',  box:'rgba(234,179,8,0.85)', boxFill:'rgba(234,179,8,0.12)' },
+       green:  { stroke:'rgba(34,197,94,0.40)',  box:'rgba(34,197,94,0.85)', boxFill:'rgba(34,197,94,0.12)' },
+   };
 
-        function handleTouchMove(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = { clientX: touch.clientX, clientY: touch.clientY };
-            draw(mouseEvent);
-        }
+   let currentTab='diagnosis', selectedFile=null, activeDepth='Bottom';
+   let currentTool='brush', currentColor='red';
+   let isDrawing=false, lastX, lastY, startX, startY, tempCanvasData;
+   let diagOverlayEnabled = true;
 
-        function setTool(tool) {
-            currentTool = tool;
-            document.getElementById('tool-brush').classList.toggle('active', tool === 'brush');
-            document.getElementById('tool-eraser').classList.toggle('active', tool === 'eraser');
-        }
+   function switchTab(tab) {
+       currentTab = tab;
+       document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+       document.getElementById(tab+'-section').classList.remove('hidden');
+       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+       document.getElementById(tab==='diagnosis'?'diag-tab':'train-tab').classList.add('active');
+       syncToolButtons();
+   }
 
-        function setColor(color) {
-            currentColor = color;
-            document.querySelectorAll('.color-swatch').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.color === color);
-            });
-        }
+   function getCanvas()  { return document.getElementById(currentTab==='diagnosis'?'diag-canvas':'train-canvas'); }
 
-        function clearCanvas() {
-            if (ctx) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-        }
+   function syncCanvasSize(canvasId, viewerId) {
+       const viewer = document.getElementById(viewerId);
+       const canvas = document.getElementById(canvasId);
+       if (!viewer || !canvas) return;
+       const r = viewer.getBoundingClientRect();
+       canvas.width  = r.width;
+       canvas.height = r.height;
+       canvas.style.width  = r.width  + 'px';
+       canvas.style.height = r.height + 'px';
+       canvas.style.left = '0px';
+       canvas.style.top  = '0px';
+   }
 
-        function submitAnswer(answer) {
-            if (answered || !studyLabel) return;
-            answered = true;
+   function clearCanvas() {
+       const c = getCanvas();
+       if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+   }
 
-            const quizButtons = document.querySelectorAll('.quiz-btn');
-            const feedbackSection = document.getElementById('study-feedback');
-            const feedbackResult = document.getElementById('feedback-result');
-            const feedbackExplanation = document.getElementById('feedback-explanation');
+   function setTool(t) { currentTool=t; syncToolButtons(); }
 
-            const isCorrect = answer === studyLabel;
+   function setColor(color) {
+       currentColor = color;
+       ['red','yellow','green'].forEach(c =>
+           document.querySelectorAll(`.color-dot.${c}`).forEach(el => el.classList.toggle('active', c===color))
+       );
+   }
 
-            // Update stats
-            stats.total++;
-            if (isCorrect) {
-                stats.correct++;
-                stats.streak++;
-            } else {
-                stats.streak = 0;
-            }
-            updateStats();
+   function syncToolButtons() {
+       ['brush','eraser','box'].forEach(t => {
+           ['diag','train'].forEach(p => {
+               const b = document.getElementById(p+'-'+t);
+               if (b) b.classList.toggle('active', t===currentTool);
+           });
+       });
+   }
 
-            // Highlight buttons
-            quizButtons.forEach(btn => {
-                btn.disabled = true;
-                const btnAnswer = btn.dataset.answer;
-                if (btnAnswer === studyLabel) {
-                    btn.classList.add('correct');
-                } else if (btnAnswer === answer && !isCorrect) {
-                    btn.classList.add('wrong');
-                }
-            });
+   function attachDrawingListeners(canvasId) {
+       const canvas = document.getElementById(canvasId);
+       if (!canvas) return;
+       canvas.addEventListener('mousedown', e => {
+           e.preventDefault(); isDrawing=true;
+           const p = getCanvasPos(e, canvas);
+           startX=lastX=p.x; startY=lastY=p.y;
+           if (currentTool==='box') tempCanvasData=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height);
+       });
+       canvas.addEventListener('mousemove', e => {
+           const p = getCanvasPos(e, canvas);
+           if (canvasId==='diag-canvas') document.getElementById('diag-coord-display').textContent =
+               `COORD: ${Math.round(p.x).toString().padStart(3,'0')}, ${Math.round(p.y).toString().padStart(3,'0')}`;
+           if (!isDrawing) return;
+           e.preventDefault();
+           const ctx=canvas.getContext('2d'), col=BRUSH_COLORS[currentColor];
+           if (currentTool==='brush') {
+               ctx.strokeStyle=col.stroke; ctx.lineWidth=14; ctx.lineCap='round';
+               ctx.shadowColor=col.stroke; ctx.shadowBlur=10;
+               ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+               ctx.shadowBlur=0;
+           } else if (currentTool==='eraser') {
+               ctx.globalCompositeOperation='destination-out'; ctx.lineWidth=20; ctx.lineCap='round';
+               ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+               ctx.globalCompositeOperation='source-over';
+           } else if (currentTool==='box') {
+               if (tempCanvasData) ctx.putImageData(tempCanvasData,0,0);
+               ctx.strokeStyle=col.box; ctx.fillStyle=col.boxFill; ctx.lineWidth=2;
+               ctx.strokeRect(startX,startY,p.x-startX,p.y-startY);
+               ctx.fillRect(startX,startY,p.x-startX,p.y-startY);
+           }
+           lastX=p.x; lastY=p.y;
+       });
+       canvas.addEventListener('mouseup',    ()=>{ isDrawing=false; tempCanvasData=null; });
+       canvas.addEventListener('mouseleave', ()=>{ isDrawing=false; });
+   }
 
-            // Show feedback
-            const labelMap = { glioma: 'Glioma', meningioma: 'Meningioma', pituitary: 'Pituitary Tumor', notumor: 'No Tumor' };
-            feedbackResult.textContent = isCorrect ? 'Correct!' : 'Incorrect. The answer is ' + labelMap[studyLabel] + '.';
-            feedbackResult.className = isCorrect ? 'font-semibold mb-2 text-success' : 'font-semibold mb-2 text-error';
-            feedbackExplanation.textContent = studyExplanation;
-            feedbackSection.classList.remove('hidden');
-        }
+   function getCanvasPos(e,c) { const r=c.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
 
-        function updateStats() {
-            document.getElementById('stat-streak').textContent = stats.streak;
-            document.getElementById('stat-accuracy').textContent = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) + '%' : '0%';
-            document.getElementById('stat-total').textContent = stats.total;
-        }
-    </script>
+   attachDrawingListeners('diag-canvas');
+   attachDrawingListeners('train-canvas');
+
+   window.addEventListener('load', () => {
+       syncCanvasSize('diag-canvas','diag-viewer');
+       syncCanvasSize('train-canvas','train-viewer');
+   });
+   window.addEventListener('resize', () => {
+       syncCanvasSize('diag-canvas','diag-viewer');
+       syncCanvasSize('train-canvas','train-viewer');
+   });
+
+   // ─── FILE UPLOAD ──────────────────────────────────────────────────
+   const fileInput = document.getElementById('file-input');
+   fileInput.onchange = e => handleFile(e.target.files[0]);
+
+   function handleDiagDrop(e) { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }
+   function handleRightDrop(e) {
+       e.preventDefault();
+       document.getElementById('right-drop-zone').classList.remove('drag-over');
+       handleFile(e.dataTransfer.files[0]);
+   }
+
+   function handleFile(file) {
+       if (!file) return;
+       selectedFile = file;
+       const reader = new FileReader();
+       reader.onload = ev => {
+            diagOverlayEnabled = true;
+
+            const slider = document.getElementById('diag-opacity');
+            const heatmap = document.getElementById('diag-heatmap-img');
+            const btn = document.getElementById('diag-overlay-btn');
+
+            slider.value = 50;
+            heatmap.style.opacity = 0;
+            btn.textContent = 'Visible';
+           document.getElementById('diag-empty').classList.add('hidden');
+           const viewer = document.getElementById('diag-viewer');
+           viewer.classList.remove('hidden');
+           document.getElementById('analyze-btn').classList.remove('hidden');
+
+           const img = document.getElementById('diag-base-img');
+           img.onload = () => { setTimeout(() => syncCanvasSize('diag-canvas','diag-viewer'), 50); };
+           img.src = ev.target.result;
+
+           const n = file.name;
+           document.getElementById('prop-file').textContent   = n.length>15 ? n.substring(0,12)+'...' : n;
+           document.getElementById('prop-format').textContent = file.type.split('/')[1].toUpperCase();
+           const tmp=new Image(); tmp.onload=()=>document.getElementById('prop-res').textContent=`${tmp.width}×${tmp.height}`; tmp.src=ev.target.result;
+
+        
+
+           const hm = document.getElementById('diag-heatmap-img');
+            hm.src = "";
+            m.style.opacity = 0.5;
+
+            diagOverlayEnabled = true;
+            document.getElementById('diag-opacity').value = 50;
+            hm.style.opacity = 0.5;
+            document.getElementById('diag-overlay-btn').textContent = 'Visible';
+           document.getElementById('insight-content').classList.add('hidden');
+           document.getElementById('insight-empty').classList.remove('hidden');
+
+           resetDiagConfBars();
+           clearCanvas();
+       };
+       reader.readAsDataURL(file);
+   }
+
+   function resetDiagConfBars() {
+       ['glioma','meningioma','pituitary','notumor'].forEach(c => {
+           document.getElementById(`diag-conf-${c}-pct`).textContent='0%';
+           document.getElementById(`diag-conf-${c}-bar`).style.width='0%';
+       });
+       document.getElementById('diag-conf-verdict').textContent='—';
+       document.getElementById('diag-conf-empty').classList.remove('hidden');
+       document.getElementById('diag-conf-bars').classList.add('hidden');
+   }
+
+   // ─── DIAGNOSIS ANALYSE ────────────────────────────────────────────
+   document.getElementById('analyze-btn').onclick = async () => {
+       if (!selectedFile) return;
+       const btn=document.getElementById('analyze-btn');
+       btn.querySelector('div').textContent='Running Pulse...';
+       btn.querySelector('div').classList.add('animate-pulse');
+       const fd=new FormData(); fd.append('image',selectedFile); fd.append('depth',activeDepth);
+       try {
+           const data=await (await fetch('/predict',{method:'POST',body:fd})).json();
+           if (data.error) throw new Error(data.error);
+
+           document.getElementById('insight-empty').classList.add('hidden');
+           document.getElementById('insight-content').classList.remove('hidden');
+
+           const hm=document.getElementById('diag-heatmap-img');
+           hm.src='data:image/png;base64,'+data.heatmap_image;
+           hm.style.opacity='0.5';
+           document.getElementById('diag-opacity').value=50;
+           document.getElementById('opacity-val').textContent='50%';
+
+           document.getElementById('res-confidence').textContent=(data.confidence*100).toFixed(1)+'%';
+           document.getElementById('res-prediction').textContent=data.prediction.toUpperCase();
+           document.getElementById('res-explanation').textContent=TUMOR_INFO[data.prediction].correct.split('\n\n').slice(1).join('\n\n');
+
+           const probs = data.probabilities || (() => {
+               const p = {glioma:0, meningioma:0, pituitary:0, notumor:0};
+               const key = data.prediction === 'notumor' ? 'notumor' : data.prediction;
+               if (key in p) p[key] = data.confidence;
+               return p;
+           })();
+           updateDiagConfBars(probs);
+
+           btn.classList.add('hidden');
+       } catch(err) { alert('Error: '+err.message); }
+       finally {
+           btn.querySelector('div').textContent='Initialize Scan';
+           btn.querySelector('div').classList.remove('animate-pulse');
+       }
+   };
+
+   document.getElementById('diag-opacity').addEventListener('input', (e) => {
+    const v = Number(e.target.value);
+    const heatmap = document.getElementById('diag-heatmap-img');
+
+    requestAnimationFrame(() => {
+        heatmap.style.opacity = v / 100;
+        document.getElementById('opacity-val').textContent = v + '%';
+    });
+
+    document.getElementById('diag-overlay-btn').textContent =
+        v > 0 ? 'Visible' : 'Hidden';
+});
+   document.getElementById('train-opacity').oninput = e => {
+       document.getElementById('train-heatmap-img').style.opacity=e.target.value/100;
+       document.getElementById('train-opacity-val').textContent=e.target.value+'%';
+   };
+   function setLayer(l) { activeDepth=l; if(selectedFile) document.getElementById('analyze-btn').classList.remove('hidden'); }
+   function toggleOverlay() {
+    const slider = document.getElementById('diag-opacity');
+    const btn = document.getElementById('diag-overlay-btn');
+
+    diagOverlayEnabled = !diagOverlayEnabled;
+
+    const target = diagOverlayEnabled ? 50 : 0;
+
+    slider.value = target;
+
+    requestAnimationFrame(() => {
+        document.getElementById('diag-heatmap-img').style.opacity = target / 100;
+    });
+
+    btn.textContent = diagOverlayEnabled ? 'Visible' : 'Hidden';
+}
+
+   function updateDiagConfBars(probs) {
+       const classes=['glioma','meningioma','pituitary','notumor'];
+       classes.forEach(c => {
+           const pct=Math.round((probs[c]||0)*100);
+           document.getElementById(`diag-conf-${c}-pct`).textContent=pct+'%';
+           document.getElementById(`diag-conf-${c}-bar`).style.width=pct+'%';
+       });
+       const top=classes.reduce((a,b)=>(probs[a]||0)>(probs[b]||0)?a:b);
+       document.getElementById('diag-conf-verdict').textContent=top.charAt(0).toUpperCase()+top.slice(1);
+       document.getElementById('diag-conf-empty').classList.add('hidden');
+       document.getElementById('diag-conf-bars').classList.remove('hidden');
+   }
+
+   // ─── TRAINING ─────────────────────────────────────────────────────
+   let studyImage=null, stats={streak:0,total:0,correct:0};
+
+   async function nextStudy() {
+       document.getElementById('train-loading').classList.remove('hidden');
+       document.getElementById('train-empty').classList.add('hidden');
+       document.getElementById('train-feedback').classList.add('hidden');
+
+       const ca=document.getElementById('choices-area');
+       ca.classList.remove('opacity-10','pointer-events-none');
+       ca.classList.add('opacity-100');
+
+       const hm=document.getElementById('train-heatmap-img');
+       hm.style.opacity='0'; hm.src='';
+       document.getElementById('train-opacity-ctrl').classList.add('hidden');
+       resetTrainConfBars();
+       clearCanvas();
+       try {
+           const res=await fetch('/api/study/image');
+           studyImage=await res.json();
+           if (studyImage.error) throw new Error(studyImage.error);
+           document.getElementById('train-viewer').classList.remove('hidden');
+           const img=document.getElementById('train-base-img');
+           img.onload=()=>setTimeout(()=>syncCanvasSize('train-canvas','train-viewer'),50);
+           img.src=studyImage.image_url;
+       } catch(err) { alert('Could not load study image: '+err.message); }
+       finally { document.getElementById('train-loading').classList.add('hidden'); }
+   }
+
+   function resetTrainConfBars() {
+       const classes=['glioma','meningioma','pituitary','notumor'];
+       classes.forEach(c => {
+           document.getElementById(`conf-${c}-pct`).textContent='0%';
+           document.getElementById(`conf-${c}-bar`).style.width='0%';
+       });
+       document.getElementById('conf-verdict').textContent='—';
+       document.getElementById('conf-empty').classList.remove('hidden');
+       document.getElementById('conf-bars').classList.add('hidden');
+   }
+
+   async function submitAnswer(pick) {
+       if (!studyImage) return;
+       const ca=document.getElementById('choices-area');
+       ca.classList.remove('opacity-100');
+       ca.classList.add('opacity-10','pointer-events-none');
+       stats.total++;
+       const isCorrect=pick===studyImage.label;
+       if (isCorrect) { stats.correct++; stats.streak++; } else { stats.streak=0; }
+       updateStats();
+       try {
+           const data=await (await fetch('/api/study/analyze',{
+               method:'POST', headers:{'Content-Type':'application/json'},
+               body:JSON.stringify({image_url:studyImage.image_url, depth:'Bottom'})
+           })).json();
+           if (!data.error) {
+               const hm=document.getElementById('train-heatmap-img');
+               hm.src='data:image/png;base64,'+data.heatmap_image;
+               hm.style.opacity='0.5';
+               document.getElementById('train-opacity').value=50;
+               document.getElementById('train-opacity-val').textContent='50%';
+               document.getElementById('train-opacity-ctrl').classList.remove('hidden');
+               if (data.probabilities) updateTrainConfBars(data.probabilities);
+           }
+       } catch(err) { console.error(err); }
+       showFeedback(isCorrect);
+   }
+
+   function updateTrainConfBars(probs) {
+       const classes=['glioma','meningioma','pituitary','notumor'];
+       classes.forEach(c => {
+           const pct=Math.round((probs[c]||0)*100);
+           document.getElementById(`conf-${c}-pct`).textContent=pct+'%';
+           document.getElementById(`conf-${c}-bar`).style.width=pct+'%';
+       });
+       const top=classes.reduce((a,b)=>(probs[a]||0)>(probs[b]||0)?a:b);
+       document.getElementById('conf-verdict').textContent=top.charAt(0).toUpperCase()+top.slice(1);
+       document.getElementById('conf-empty').classList.add('hidden');
+       document.getElementById('conf-bars').classList.remove('hidden');
+   }
+
+   function updateStats() {
+       document.getElementById('stats-total').textContent=stats.total;
+       document.getElementById('stats-streak').textContent=stats.streak;
+       document.getElementById('stats-acc').textContent=stats.total>0?Math.round(stats.correct/stats.total*100)+'%':'0%';
+   }
+
+   function showFeedback(isCorrect) {
+    const IMAGE_MAP = {
+        glioma: 'glioma.jpg',
+        meningioma: 'meningioma.webp',
+        notumor: 'notumor.jpeg',
+        pituitary: 'pituitary.png'
+    };
+
+    const feedback = document.getElementById('train-feedback');
+    const imgEl = document.getElementById('f-location-img');
+    const header = document.getElementById('f-header');
+    const desc = document.getElementById('f-desc');
+
+    if (!studyImage || !studyImage.label) return;
+
+    const label = studyImage.label;
+    const imageFile = IMAGE_MAP[label];
+
+    // show panel
+    feedback.classList.remove('hidden');
+
+    // header styling + text
+    header.innerHTML = isCorrect
+        ? `<span class="text-green-400 font-bold">Correct</span>`
+        : `<span class="text-red-400 font-bold">Incorrect</span>`;
+
+    // description text
+    desc.textContent = isCorrect
+        ? TUMOR_INFO[label].correct
+        : TUMOR_INFO[label].incorrect;
+
+    // reset image
+    imgEl.style.display = 'block';
+    imgEl.src = '';
+
+    if (!imageFile) {
+        console.error('Unknown label:', label);
+        imgEl.style.display = 'none';
+        return;
+    }
+
+    imgEl.onerror = () => {
+        console.error('Image failed:', imageFile);
+        imgEl.style.display = 'none';
+    };
+
+    imgEl.src = '/static/explanation/' + imageFile;
+}
+
+
+</script>
 </body>
 </html>

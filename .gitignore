@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 __pycache__/
 brain_tumor_model.h5
+static/explanation_images/
+static/explanation/

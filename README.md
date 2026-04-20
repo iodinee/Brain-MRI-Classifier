@@ -83,4 +83,4 @@ Not a clinical diagnostic tool.
 The trained model file is too large for GitHub.
 
 Download it here:  
-[model](https://drive.google.com/file/d/17x95P7RX-JFBLRvDEHozWuRzUrJ7OLcy/view?usp=sharing)
+[model](https://drive.google.com/file/d/1bAAlMoY_Bjq3h_P_T-8HHLZOogkugua3/view?usp=drive_link)

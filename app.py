@@ -7,7 +7,11 @@ import tensorflow as tf
 from flask import Flask, jsonify, render_template, request, send_from_directory
 from PIL import Image
 import cv2
+import gdown
 
+
+if not os.path.exists("brain_tumor_model.h5"):
+    gdown.download("https://drive.google.com/uc?id=1bAAlMoY_Bjq3h_P_T-8HHLZOogkugua3", "brain_tumor_model.h5", quiet=False)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "brain_tumor_model.h5")
 STUDY_DIR = os.path.join(BASE_DIR, "testing_images")

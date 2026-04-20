@@ -12,8 +12,13 @@
            --accent-glow: rgba(167,139,250,0.3); --text-main: #E2E2E2; --text-dim: #8892A4;
            --tech-font: 'JetBrains Mono', monospace;
        }
-       body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; }
-       .panel-header { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; opacity: 0.5; letter-spacing: 0.18em; margin-bottom: 1rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; }
+       body {
+        background-color: var(--bg);
+        color: var(--text-main);
+        font-family: 'Inter', sans-serif;
+        overflow: hidden;
+    }
+       body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; }       .panel-header { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; opacity: 0.5; letter-spacing: 0.18em; margin-bottom: 1rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; }
        .tech-label { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
        .tech-value { font-family: var(--tech-font); font-size: 11px; text-transform: uppercase; }
        .panel { border: 1px solid rgba(167,139,250,0.1); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; }
@@ -60,10 +65,9 @@
             object-fit: contain;
             mix-blend-mode: screen;
             pointer-events: none;
-
             transition: opacity 0.35s ease-in-out;
             will-change: opacity;
-}
+       }
        .scan-viewer canvas {
            position: absolute;
            inset: 0;
@@ -86,6 +90,24 @@
            border-color: rgba(167,139,250,0.6);
            background: rgba(167,139,250,0.08);
        }
+
+       /* Layer select highlight for active selection */
+       .layer-badge {
+           display: inline-flex;
+           align-items: center;
+           gap: 4px;
+           padding: 2px 8px;
+           border-radius: 4px;
+           font-family: 'JetBrains Mono', monospace;
+           font-size: 10px;
+           font-weight: 600;
+           text-transform: uppercase;
+           letter-spacing: 0.08em;
+           background: rgba(167,139,250,0.15);
+           border: 1px solid rgba(167,139,250,0.3);
+           color: #A78BFA;
+           transition: all 0.2s;
+       }
    </style>
 </head>
 <body class="h-screen flex flex-col">
@@ -107,7 +129,7 @@
        <section id="diagnosis-section" class="h-full grid grid-cols-[260px_1fr_280px] gap-4">
 
            <!-- Left -->
-           <div class="flex flex-col gap-3 h-full overflow-y-auto pr-1 min-h-0">
+           <div class="flex flex-col gap-3 h-full overflow-y-auto pr-1 min-h-0 scroll-glass">
                <div class="panel">
                    <div class="panel-header">Input Properties</div>
                    <div class="space-y-3">
@@ -120,20 +142,25 @@
                    <div class="panel-header">Grad-CAM Config</div>
                    <div class="space-y-4">
                        <div class="space-y-2">
-                           <div class="flex justify-between items-center"><span class="tech-label">Opacity:</span><span class="tech-value" id="opacity-val">50%</span></div>
-                           <input type="range" id="diag-opacity" class="custom-slider" min="0" max="100" value="50">
+                           <!-- CHANGE: slider starts at 0, overlay starts hidden -->
+                           <div class="flex justify-between items-center"><span class="tech-label">Opacity:</span><span class="tech-value" id="opacity-val">0%</span></div>
+                           <input type="range" id="diag-opacity" class="custom-slider" min="0" max="100" value="0">
                        </div>
                        <div class="flex justify-between items-center">
                            <span class="tech-label">Overlay:</span>
-                           <button onclick="toggleOverlay('diag')" id="diag-overlay-btn" class="px-3 py-1 rounded border border-white/10 text-[9px] uppercase font-bold tracking-widest bg-white/5 hover:bg-white/10" style="font-family:'Inter',sans-serif;">Visible</button>
+                           <!-- CHANGE: starts as "Hidden" -->
+                           <button onclick="toggleOverlay('diag')" id="diag-overlay-btn" class="px-3 py-1 rounded border border-white/10 text-[9px] uppercase font-bold tracking-widest bg-white/5 hover:bg-white/10" style="font-family:'Inter',sans-serif;">Hidden</button>
                        </div>
                        <div class="flex justify-between items-center">
                            <span class="tech-label">Layer:</span>
-                           <select id="diag-layer" onchange="setLayer(this.value)" class="bg-[#14141F] border border-white/10 text-[10px] px-2 py-1 rounded uppercase font-bold tracking-widest text-[#A78BFA] outline-none" style="font-family:'Inter',sans-serif;">
-                               <option value="Top">Top</option>
-                               <option value="Middle">Middle</option>
-                               <option value="Bottom" selected>Bottom</option>
-                           </select>
+                           <!-- CHANGE: "Bottom" is selected and shown as active badge -->
+                           <div class="flex items-center gap-2">
+                               <select id="diag-layer" onchange="setLayer(this.value)" class="bg-[#14141F] border border-white/10 text-[10px] px-2 py-1 rounded uppercase font-bold tracking-widest text-[#A78BFA] outline-none" style="font-family:'Inter',sans-serif;">
+                                   <option value="Top">Top</option>
+                                   <option value="Middle" selected>Middle</option>
+                                   <option value="Bottom">Bottom</option>
+                               </select>
+                           </div>
                        </div>
                    </div>
                </div>
@@ -199,7 +226,8 @@
 
                <div id="diag-viewer" class="scan-viewer hidden">
                    <img id="diag-base-img" class="base-img" src="" alt="">
-                   <img id="diag-heatmap-img" class="heat-img" src="" style="opacity:0.5;">
+                   <!-- CHANGE: opacity starts at 0 (hidden) -->
+                   <img id="diag-heatmap-img" class="heat-img" src="" style="opacity:0;">
                    <canvas id="diag-canvas"></canvas>
                </div>
 
@@ -212,7 +240,7 @@
            </div>
 
            <!-- Right -->
-           <div class="panel h-full overflow-y-auto flex flex-col gap-4">
+           <div class="panel h-full overflow-y-auto flex flex-col gap-4 scroll-glass">
                <div class="panel-header">Diagnostic Insight</div>
                <div id="insight-empty" class="flex items-center justify-center text-center px-6 opacity-40" style="font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;min-height:80px;">Awaiting Data_Packet</div>
                <div id="insight-content" class="hidden space-y-4">
@@ -305,39 +333,21 @@
            </div>
 
            <!-- Centre viewer -->
-<div class="relative bg-[#07070B] rounded-xl overflow-hidden" id="train-container">
-
-    <div id="train-empty" class="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
-        <svg class="w-10 h-10 mx-auto text-[#A78BFA] opacity-20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016"/>
-        </svg>
-
-        <p style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;"
-           class="text-[#8892A4] mb-6">
-            Simulation Hub Ready
-        </p>
-
-        <button onclick="nextStudy()"
-            class="bg-[#A78BFA] px-8 py-3.5 rounded text-[#0A0A0F] font-black text-[11px] uppercase tracking-[0.25em] hover:scale-105 active:scale-95 transition-all"
-            style="font-family:'Inter',sans-serif;">
-            Initialize Session
-        </button>
-    </div>
-
-    <div id="train-viewer" class="scan-viewer hidden">
-        <img id="train-base-img" class="base-img grayscale brightness-110" src="" alt="">
-        <img id="train-heatmap-img" class="heat-img" src="" style="opacity:0;">
-        <canvas id="train-canvas"></canvas>
-    </div>
-
-    <div id="train-loading"
-        class="absolute inset-0 bg-[#0A0A0F]/80 flex items-center justify-center hidden z-50"
-        style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:#A78BFA;">
-        Loading_Data_Packet...
-    </div>
-
-</div>
+           <div class="relative bg-[#07070B] rounded-xl overflow-hidden" id="train-container">
+               <div id="train-empty" class="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
+                   <svg class="w-10 h-10 mx-auto text-[#A78BFA] opacity-20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016"/>
+                   </svg>
+                   <p style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;" class="text-[#8892A4] mb-6">Simulation Hub Ready</p>
+                   <button onclick="nextStudy()" class="bg-[#A78BFA] px-8 py-3.5 rounded text-[#0A0A0F] font-black text-[11px] uppercase tracking-[0.25em] hover:scale-105 active:scale-95 transition-all" style="font-family:'Inter',sans-serif;">Initialize Session</button>
+               </div>
+               <div id="train-viewer" class="scan-viewer hidden">
+                   <img id="train-base-img" class="base-img grayscale brightness-110" src="" alt="">
+                   <img id="train-heatmap-img" class="heat-img" src="" style="opacity:0;">
+                   <canvas id="train-canvas"></canvas>
+               </div>
+               <div id="train-loading" class="absolute inset-0 bg-[#0A0A0F]/80 flex items-center justify-center hidden z-50" style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:#A78BFA;">Loading_Data_Packet...</div>
+           </div>
 
            <!-- Right -->
            <div class="panel h-full flex flex-col overflow-y-auto">
@@ -349,26 +359,16 @@
                    <button onclick="submitAnswer('notumor')" class="choice-btn w-full text-left p-4 rounded border border-white/10 hover:border-[#10b981] hover:bg-[#10b981]/5 transition-all text-white"><span class="text-[#10b981] font-black mr-2">●</span>No Tumor</button>
                </div>
                <div id="train-feedback" class="mt-4 hidden flex-1 flex flex-col gap-3">
-
-                <div id="f-header" class="p-3 rounded-lg flex items-center gap-3"></div>
-            
-                <div class="p-3 rounded-lg bg-white/5 border border-white/5">
-                    <p id="f-desc" class="text-[12px] text-[#8892A4] whitespace-pre-line"
-                       style="font-family:'Inter',sans-serif;line-height:1.7;"></p>
-                </div>
-            
-                <!-- 👇 MOVE IMAGE HERE -->
-                <div class="space-y-2">
-                    <p class="text-[9px] uppercase tracking-widest opacity-40">Reference Scan</p>
-                    <img id="f-location-img"
-                         src=""
-                         alt="reference scan"
-                         class="w-full rounded-lg object-cover border border-white/5">
-                </div>
-                
-            </div>
-                   <button onclick="nextStudy()" class="w-full bg-white/5 p-3 rounded text-white hover:bg-white/10 transition-all shrink-0" style="font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;"> Next Scan →</button>
+                   <div id="f-header" class="p-3 rounded-lg flex items-center gap-3"></div>
+                   <div class="p-3 rounded-lg bg-white/5 border border-white/5">
+                       <p id="f-desc" class="text-[12px] text-[#8892A4] whitespace-pre-line" style="font-family:'Inter',sans-serif;line-height:1.7;"></p>
+                   </div>
+                   <div class="space-y-2">
+                       <p class="text-[9px] uppercase tracking-widest opacity-40">Reference Scan</p>
+                       <img id="f-location-img" src="" alt="reference scan" class="w-full rounded-lg object-cover border border-white/5">
+                   </div>
                </div>
+               <button onclick="nextStudy()" class="w-full bg-white/5 p-3 rounded text-white hover:bg-white/10 transition-all shrink-0" style="font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;">Next Scan →</button>
                <p class="mt-auto text-center opacity-20 text-white py-3 shrink-0" style="font-family:'Inter',sans-serif;font-size:9px;letter-spacing:0.1em;">For educational purposes only.<br/>Not intended for clinical diagnosis.</p>
            </div>
        </section>
@@ -401,10 +401,12 @@
        green:  { stroke:'rgba(34,197,94,0.40)',  box:'rgba(34,197,94,0.85)', boxFill:'rgba(34,197,94,0.12)' },
    };
 
-   let currentTab='diagnosis', selectedFile=null, activeDepth='Bottom';
+   // CHANGE: activeDepth initialised to 'Bottom' to match the selected <option>
+   let currentTab='diagnosis', selectedFile=null, activeDepth='Middle';
    let currentTool='brush', currentColor='red';
    let isDrawing=false, lastX, lastY, startX, startY, tempCanvasData;
-   let diagOverlayEnabled = true;
+   // CHANGE: diagOverlayEnabled starts false (overlay hidden)
+   let diagOverlayEnabled = false;
 
    function switchTab(tab) {
        currentTab = tab;
@@ -520,15 +522,18 @@
        selectedFile = file;
        const reader = new FileReader();
        reader.onload = ev => {
-            diagOverlayEnabled = true;
+           // CHANGE: reset overlay to hidden state on every new file load
+           diagOverlayEnabled = false;
 
-            const slider = document.getElementById('diag-opacity');
-            const heatmap = document.getElementById('diag-heatmap-img');
-            const btn = document.getElementById('diag-overlay-btn');
+           const slider = document.getElementById('diag-opacity');
+           const heatmap = document.getElementById('diag-heatmap-img');
+           const btn = document.getElementById('diag-overlay-btn');
 
-            slider.value = 50;
-            heatmap.style.opacity = 0;
-            btn.textContent = 'Visible';
+           slider.value = 0;
+           document.getElementById('opacity-val').textContent = '0%';
+           heatmap.style.opacity = 0;
+           btn.textContent = 'Hidden';
+
            document.getElementById('diag-empty').classList.add('hidden');
            const viewer = document.getElementById('diag-viewer');
            viewer.classList.remove('hidden');
@@ -543,16 +548,9 @@
            document.getElementById('prop-format').textContent = file.type.split('/')[1].toUpperCase();
            const tmp=new Image(); tmp.onload=()=>document.getElementById('prop-res').textContent=`${tmp.width}×${tmp.height}`; tmp.src=ev.target.result;
 
-        
+           // clear heatmap src on new file
+           heatmap.src = '';
 
-           const hm = document.getElementById('diag-heatmap-img');
-            hm.src = "";
-            m.style.opacity = 0.5;
-
-            diagOverlayEnabled = true;
-            document.getElementById('diag-opacity').value = 50;
-            hm.style.opacity = 0.5;
-            document.getElementById('diag-overlay-btn').textContent = 'Visible';
            document.getElementById('insight-content').classList.add('hidden');
            document.getElementById('insight-empty').classList.remove('hidden');
 
@@ -588,9 +586,12 @@
 
            const hm=document.getElementById('diag-heatmap-img');
            hm.src='data:image/png;base64,'+data.heatmap_image;
-           hm.style.opacity='0.5';
-           document.getElementById('diag-opacity').value=50;
-           document.getElementById('opacity-val').textContent='50%';
+           // CHANGE: after scan completes, also keep overlay hidden — user must manually enable
+           hm.style.opacity = '0';
+           document.getElementById('diag-opacity').value = 0;
+           document.getElementById('opacity-val').textContent = '0%';
+           document.getElementById('diag-overlay-btn').textContent = 'Hidden';
+           diagOverlayEnabled = false;
 
            document.getElementById('res-confidence').textContent=(data.confidence*100).toFixed(1)+'%';
            document.getElementById('res-prediction').textContent=data.prediction.toUpperCase();
@@ -613,38 +614,42 @@
    };
 
    document.getElementById('diag-opacity').addEventListener('input', (e) => {
-    const v = Number(e.target.value);
-    const heatmap = document.getElementById('diag-heatmap-img');
+       const v = Number(e.target.value);
+       const heatmap = document.getElementById('diag-heatmap-img');
+       requestAnimationFrame(() => {
+           heatmap.style.opacity = v / 100;
+           document.getElementById('opacity-val').textContent = v + '%';
+       });
+       // keep overlay state in sync with slider
+       diagOverlayEnabled = v > 0;
+       document.getElementById('diag-overlay-btn').textContent = v > 0 ? 'Visible' : 'Hidden';
+   });
 
-    requestAnimationFrame(() => {
-        heatmap.style.opacity = v / 100;
-        document.getElementById('opacity-val').textContent = v + '%';
-    });
-
-    document.getElementById('diag-overlay-btn').textContent =
-        v > 0 ? 'Visible' : 'Hidden';
-});
    document.getElementById('train-opacity').oninput = e => {
        document.getElementById('train-heatmap-img').style.opacity=e.target.value/100;
        document.getElementById('train-opacity-val').textContent=e.target.value+'%';
    };
-   function setLayer(l) { activeDepth=l; if(selectedFile) document.getElementById('analyze-btn').classList.remove('hidden'); }
+
+   // CHANGE: setLayer updates the visible badge text too
+   function setLayer(l) {
+       activeDepth = l;
+       document.getElementById('active-layer-badge').innerHTML =
+           `<svg class="w-2 h-2 fill-current" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg>${l}`;
+       if (selectedFile) document.getElementById('analyze-btn').classList.remove('hidden');
+   }
+
    function toggleOverlay() {
-    const slider = document.getElementById('diag-opacity');
-    const btn = document.getElementById('diag-overlay-btn');
-
-    diagOverlayEnabled = !diagOverlayEnabled;
-
-    const target = diagOverlayEnabled ? 50 : 0;
-
-    slider.value = target;
-
-    requestAnimationFrame(() => {
-        document.getElementById('diag-heatmap-img').style.opacity = target / 100;
-    });
-
-    btn.textContent = diagOverlayEnabled ? 'Visible' : 'Hidden';
-}
+       const slider = document.getElementById('diag-opacity');
+       const btn = document.getElementById('diag-overlay-btn');
+       diagOverlayEnabled = !diagOverlayEnabled;
+       const target = diagOverlayEnabled ? 50 : 0;
+       slider.value = target;
+       document.getElementById('opacity-val').textContent = target + '%';
+       requestAnimationFrame(() => {
+           document.getElementById('diag-heatmap-img').style.opacity = target / 100;
+       });
+       btn.textContent = diagOverlayEnabled ? 'Visible' : 'Hidden';
+   }
 
    function updateDiagConfBars(probs) {
        const classes=['glioma','meningioma','pituitary','notumor'];
@@ -746,55 +751,52 @@
    }
 
    function showFeedback(isCorrect) {
-    const IMAGE_MAP = {
-        glioma: 'glioma.jpg',
-        meningioma: 'meningioma.webp',
-        notumor: 'notumor.jpeg',
-        pituitary: 'pituitary.png'
-    };
+       const IMAGE_MAP = {
+           glioma: 'glioma.jpg',
+           meningioma: 'meningioma.webp',
+           pituitary: 'pituitary.png',
+           notumor: 'notumor.jpg',
+           'no tumor': 'notumor.jpeg'
+       };
 
-    const feedback = document.getElementById('train-feedback');
-    const imgEl = document.getElementById('f-location-img');
-    const header = document.getElementById('f-header');
-    const desc = document.getElementById('f-desc');
+       const feedback = document.getElementById('train-feedback');
+       const imgEl = document.getElementById('f-location-img');
+       const header = document.getElementById('f-header');
+       const desc = document.getElementById('f-desc');
 
-    if (!studyImage || !studyImage.label) return;
+       if (!studyImage || !studyImage.label) return;
 
-    const label = studyImage.label;
-    const imageFile = IMAGE_MAP[label];
+       const label = studyImage.label
+           .toLowerCase()
+           .replace(/\s+/g, '')
+           .replace(/_/g, '');
+       const imageFile = IMAGE_MAP[label] || IMAGE_MAP[label.replace(/\s/g,'')];
 
-    // show panel
-    feedback.classList.remove('hidden');
+       feedback.classList.remove('hidden');
 
-    // header styling + text
-    header.innerHTML = isCorrect
-        ? `<span class="text-green-400 font-bold">Correct</span>`
-        : `<span class="text-red-400 font-bold">Incorrect</span>`;
+       header.innerHTML = isCorrect
+           ? `<span class="text-green-400 font-bold">Correct</span>`
+           : `<span class="text-red-400 font-bold">Incorrect</span>`;
 
-    // description text
-    desc.textContent = isCorrect
-        ? TUMOR_INFO[label].correct
-        : TUMOR_INFO[label].incorrect;
+       desc.textContent = isCorrect
+           ? TUMOR_INFO[label].correct
+           : TUMOR_INFO[label].incorrect;
 
-    // reset image
-    imgEl.style.display = 'block';
-    imgEl.src = '';
+       imgEl.style.display = 'block';
 
-    if (!imageFile) {
-        console.error('Unknown label:', label);
-        imgEl.style.display = 'none';
-        return;
-    }
+       if (!imageFile) {
+           console.error('Unknown label:', label);
+           imgEl.style.display = 'none';
+           return;
+       }
 
-    imgEl.onerror = () => {
-        console.error('Image failed:', imageFile);
-        imgEl.style.display = 'none';
-    };
+       imgEl.onerror = () => {
+           console.error('Image failed:', imageFile);
+           imgEl.style.display = 'none';
+       };
 
-    imgEl.src = '/static/explanation/' + imageFile;
-}
-
-
-</script>
+       imgEl.src = '/static/explanation_images/' + imageFile;
+   }
+   </script>
 </body>
 </html>

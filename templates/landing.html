@@ -46,6 +46,48 @@
 
     /* stats divider lines */
     .stat-divider { border-left: 1px solid #1a1a2e; }
+
+    /* ───── Glass Themed Scrollbar (Landing Page) ───── */
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* track (background rail) */
+::-webkit-scrollbar-track {
+  background: rgba(10, 10, 15, 0.6);
+  backdrop-filter: blur(8px);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* thumb (scroll handle) */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(167, 139, 250, 0.55),
+    rgba(232, 121, 249, 0.55)
+  );
+  border-radius: 999px;
+  border: 2px solid rgba(10, 10, 15, 0.8);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.15);
+}
+
+/* hover state */
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(196, 181, 253, 0.9),
+    rgba(240, 171, 252, 0.9)
+  );
+  box-shadow: 0 0 16px rgba(167, 139, 250, 0.25);
+}
+
+/* corner where scrollbars meet */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
   </style>
 </head>
 <body class="font-sans text-white">
@@ -82,7 +124,7 @@
 
             <!-- ── Updated description with model stats woven in ── -->
             <p class="mt-4 text-[#8892a4] text-base leading-relaxed max-w-[480px]">
-              A VGG16 transfer-learning model trained for 15 epochs on the
+              A EfficientNetB4 transfer-learning model trained for 15 epochs on the
               <a href="https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset" target="_blank" rel="noopener" class="text-[#a78bfa] hover:underline">Kaggle Brain Tumor MRI dataset</a>
               (5,712 scans, 16.8 M weighted parameters). Classifies 4 categories with
               <strong class="text-white">98% test accuracy</strong>. Upload a scan for instant AI diagnosis,
@@ -225,7 +267,7 @@
             <div class="mt-4 text-2xl">🧠</div>
             <h3 class="mt-4 text-white font-bold text-[18px]">CNN Model Analyzes</h3>
             <p class="mt-3 text-[#8892a4] text-[14px] leading-relaxed">
-              VGG16 processes the scan and outputs class probabilities. Grad-CAM then generates a heatmap showing which regions drove the prediction.
+              EfficientNetB4 processes the scan and outputs class probabilities. Grad-CAM then generates a heatmap showing which regions drove the prediction.
             </p>
           </article>
 

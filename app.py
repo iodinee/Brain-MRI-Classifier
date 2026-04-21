@@ -216,10 +216,10 @@ def serve_image(label, filename):
     return send_from_directory(os.path.join(STUDY_DIR, label), filename)
 
 
-@app.route("/explanation_images/<filename>")
+@app.route("/static/explanation_images/<filename>")
 def explanation_image(filename):
-    return send_from_directory(os.path.join(BASE_DIR, "explanation_images"), filename)
+    return send_from_directory(os.path.join(BASE_DIR, "static", "explanation_images"), filename)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=7860, debug=False)
+    app.run(host="0.0.0.0", port=8080, debug=False)
